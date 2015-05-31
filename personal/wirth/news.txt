@@ -1,0 +1,16 @@
+20150413 - Lola compiler:  hex numbers: $1234  -->  1234H  (like Oberon)
+20150318 - Oberon07.Report.pdf  (s. case statements)
+20150225 - Long overdue but forgotten update: Oberon07.Report.pdf  (s. case statements)
+20150222 - Updated: LSC.Mod.txt LSS.Mod.txt LSB.Mod.txt LSV.Mod.txt LSP.Mod.txt
+20141202 - Updated LolaCompiler.pdf LSC.Mod.txt LSV.Mod.txt
+20141202 - Updated MouseP.Lola and VID.Lola
+20141126 - Added Lola MouseP.Lola and VID.Lola
+20141119 - Added new section: Lola
+20141119 - Updated ProjectOberon RISC5Top.v (outbus) 
+20141119 - Updated ProjectOberon Texts.Mod (WriteReal)
+20141016 - Added new section: PICL (inc. new source code)
+20141016 - Added ProjectOberon/PIO.Mod.txt20140810 - Updated ProjectOberon/RISC5Top.v
+    addition of general-purpose, 8-bit IO port
+    adr -32 data; -28 output ctrl
+20140701 - Updated ProjectOberon/ORB.Mod.txt
+20140624 - Updated ProjectOberon/ORG.Mod.txt
