@@ -1,3 +1,4 @@
+20150605 - license.txt; Cond mode in ORG.Ord
 20150413 - Lola compiler:  hex numbers: $1234  -->  1234H  (like Oberon)
 20150318 - Oberon07.Report.pdf  (s. case statements)
 20150225 - Long overdue but forgotten update: Oberon07.Report.pdf  (s. case statements)
