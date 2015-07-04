@@ -5,7 +5,6 @@ Request-rate: 1/10
 User-agent: *
 Visit-time: 2000-0700
 Allow: /
-Disallow: /contact/
 
 Request-rate: 1/30 0700-2000
 Request-rate: 1/10 2000-0700
