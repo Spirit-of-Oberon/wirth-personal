@@ -1,3 +1,6 @@
+20151016 - Added SmallPrograms.Lola (Lola section),
+  and ThreeCounters.pdf, StandalonePrograms.Mod (FPGA-related section);
+  Updated TextFrames.Mod - change in DisplayLine (ProjectOberon section)
 20151001 - Divider.v and  Divider.Lola.txt  corrected
 20150926 - Major update
     Revision of RISC programs for better portability. Architecture unchanged.
