@@ -1,3 +1,4 @@
+20151027 - RISC5.v,  RISC5.Lola.txt    aluRes improved, no functional change
 20151016 - Added SmallPrograms.Lola (Lola section),
   and ThreeCounters.pdf, StandalonePrograms.Mod (FPGA-related section);
   Updated TextFrames.Mod - change in DisplayLine (ProjectOberon section)
