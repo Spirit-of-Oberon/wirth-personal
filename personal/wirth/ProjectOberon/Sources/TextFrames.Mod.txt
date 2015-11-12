@@ -1,4 +1,4 @@
-MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.10.2015*)
+MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 11.11.2015*)
   IMPORT Modules, Input, Display, Viewers, Fonts, Texts, Oberon, MenuViewers;
 
   CONST replace* = 0; insert* = 1; delete* = 2; unmark* = 3; (*message id*)
@@ -760,10 +760,9 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.10.2015*)
       ELSIF Keys = {0} THEN   (*MR, scroll down*)
         TrackLine(F, X, Y, pos, keysum);
         IF keysum = {0} THEN
-          LocateLine(F, Y, loc0); LocateLine(F, F.Y, loc1);
-          pos := F.org - loc1.org + loc0.org;
-          IF pos < 0 THEN pos := 0 END ;
           RemoveMarks(F); Oberon.RemoveMarks(F.X, F.Y, F.W, F.H);
+          pos := F.org*2 - pos;
+           IF pos < 0 THEN pos := 0 END ;
           Show(F, pos)
         END
       END
