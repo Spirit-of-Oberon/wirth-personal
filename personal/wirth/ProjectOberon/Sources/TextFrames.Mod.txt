@@ -1,4 +1,4 @@
-MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.11.2015*)
+MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 16.11.2015*)
   IMPORT Modules, Input, Display, Viewers, Fonts, Texts, Oberon, MenuViewers;
 
   CONST replace* = 0; insert* = 1; delete* = 2; unmark* = 3; (*message id*)
@@ -91,8 +91,8 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.11.2015*)
   PROCEDURE SetChangeMark (F: Frame; on: BOOLEAN);  (*in corner*)
   BEGIN
     IF F.H > menuH THEN
-      IF ~on THEN Display.ReplConst(Display.black, F.X+F.W-12, F.Y+F.H-12, 8, 8, Display.replace)
-      ELSE Display.CopyPattern(F.col, Display.block, F.X+F.W-12, F.Y+F.H-12, Display.paint)
+      IF on THEN  Display.CopyPattern(Display.white, Display.block, F.X+F.W-12, F.Y+F.H-12, Display.paint)
+      ELSE Display.ReplConst(F.col, F.X+F.W-12, F.Y+F.H-12, 8, 8, Display.replace)
       END
     END
   END SetChangeMark;
@@ -110,7 +110,7 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.11.2015*)
   PROCEDURE DisplayLine (F: Frame; L: Line;
     VAR R: Texts.Reader; X, Y: INTEGER; len: LONGINT);
     VAR patadr, NX,  dx, x, y, w, h: INTEGER;
-  BEGIN NX := F.X + F.W;;
+  BEGIN NX := F.X + F.W;
     WHILE (nextCh # CR) & (R.fnt # NIL) DO
       Fonts.GetPat(R.fnt, nextCh, dx, x, y, w, h, patadr);
       IF (X + x + w <= NX) & (h # 0) THEN
@@ -328,7 +328,7 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.11.2015*)
   BEGIN
     IF F.carloc.x < F.W THEN
       IF (F.carloc.y >= 10) & (F.carloc.x + 12 < F.W) THEN
-        Display.CopyPattern(Display.white, Display.hook, F.X + F.carloc.x, F.Y + F.carloc.y, Display.invert)
+        Display.CopyPattern(Display.white, Display.hook, F.X + F.carloc.x, F.Y + F.carloc.y - 10, Display.invert)
       END
     END
   END FlipCaret;
@@ -470,7 +470,7 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.11.2015*)
       IF L # F.trailer THEN
         Texts.OpenReader(R, F.text, org); Texts.Read(R, nextCh);
         len := beg - org; wid := Width(R, len);
-        ReplConst(F.col, F, F.X + F.left + wid, curY - dsr, L.wid - wid, lsp, 0);
+        ReplConst(F.col, F, F.X + F.left + wid, curY - dsr, L.wid - wid, lsp, Display.replace);
         DisplayLine(F, L, R, F.X + F.left + wid, curY, len);
         org := org + L.len; L := L.next; curY := curY - lsp;
         WHILE (L # F.trailer) & (org <= end) DO
@@ -497,7 +497,7 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.11.2015*)
         botY := F.Y + F.bot + dsr;
         Texts.OpenReader(R, F.text, org); Texts.Read(R, nextCh);
         len := beg - org; wid := Width(R, len);
-        ReplConst (F.col, F, F.X + F.left + wid, curY - dsr, L.wid - wid, lsp, 0);
+        ReplConst (F.col, F, F.X + F.left + wid, curY - dsr, L.wid - wid, lsp, Display.replace);
         DisplayLine(F, L, R, F.X + F.left + wid, curY, len);
         org := org + L.len; curY := curY - lsp;
         Y0 := curY; L0 := L.next;
@@ -556,7 +556,7 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.11.2015*)
         Y1 := curY;
         Texts.OpenReader(R, F.text, org0); Texts.Read(R, nextCh);
         len := beg - org0; wid := Width(R, len);
-        ReplConst (F.col, F, F.X + F.left + wid, Y0 - dsr, L0.wid - wid, lsp, 0);
+        ReplConst (F.col, F, F.X + F.left + wid, Y0 - dsr, L0.wid - wid, lsp, Display.replace);
         DisplayLine(F, L0, R, F.X + F.left + wid, Y0, len);
         Y0 := Y0 - lsp;
         IF L # L0.next THEN
@@ -749,9 +749,7 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 15.11.2015*)
         IF keysum = {0} THEN
           SetChangeMark(F, FALSE);
           RemoveMarks(F); Oberon.RemoveMarks(F.X, F.Y, F.W, F.H);
-          pos := F.org*2 - pos - 100;
-          IF pos < 0 THEN pos := 0 END ;
-          Show(F, pos)
+          Show(F, F.org*2 - pos - 100)
         END
       END
     ELSE  (*text area*)
@@ -859,5 +857,5 @@ BEGIN NEW(TBuf); NEW(DelBuf);
   selH := lsp; markW := lsp DIV 2;
   eolW := lsp DIV 2;
   ScrollMarker.Fade := FlipSM; ScrollMarker.Draw := FlipSM;
-  Texts.OpenWriter(W); Texts.OpenWriter(KW);
+  Texts.OpenWriter(W); Texts.OpenWriter(KW)
 END TextFrames.
