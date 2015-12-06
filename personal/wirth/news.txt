@@ -1,3 +1,9 @@
+20151130 - updated
+    Oberon.GC  (ActCnt <= 0)
+    System.Free    Oberon.Collect(0)
+    System.Collect   Oberon.Collect(0)
+    Edit.Locate     V := Oberon.FocusViewer
+    Edit.Search     V := Oberon.FocusViewer
 20151118 - Project Oberon guide UsingOberon.pdf; TextFrames.Mod updated (upwards scrolling)
 20151027 - RISC5.v,  RISC5.Lola.txt    aluRes improved, no functional change
 20151016 - Added SmallPrograms.Lola (Lola section),
