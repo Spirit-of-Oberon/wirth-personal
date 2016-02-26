@@ -1,3 +1,15 @@
+20160220   -compiler updated
+   multi-dimensional array;  dst := src
+   first dimension of src less than first dimersion of dst
+   changes in
+   ORS.Get   (eot)
+   ORG.Put1a   (typo)
+   ORG.StoreStruct
+   ORP.Declarations
+   ORP.Type0
+   ORP.TypeTest
+   Report 8.2.4
+   Report 9.8
 20151130 - updated
     Oberon.GC  (ActCnt <= 0)
     System.Free    Oberon.Collect(0)
