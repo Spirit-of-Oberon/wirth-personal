@@ -1,3 +1,6 @@
+20160304 - compiler updated
+  comparison of Booleans re-restablished  (ORP.expression, ORG.IntRelation)
+  assignment of arrays: lengths of source and destination must be equal   (ORP.CompTypes)
 20160220   -compiler updated
    multi-dimensional array;  dst := src
    first dimension of src less than first dimersion of dst
