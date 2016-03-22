@@ -1,3 +1,6 @@
+20160307 - compiler ORP updated
+   ORP.Statsequence (assignment)
+   ORP.CompTypes  (dyn arrays:  t1.len = -1)
 20160304 - compiler updated
   comparison of Booleans re-restablished  (ORP.expression, ORG.IntRelation)
   assignment of arrays: lengths of source and destination must be equal   (ORP.CompTypes)
