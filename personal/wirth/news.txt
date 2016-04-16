@@ -1,3 +1,9 @@
+20160415 - corrections: ORP.Mod.txt  ORG.Mod.txt
+20160410 - updates
+  ORP.Mod.txt    see CompTypes
+  ORG.Mod.txt    see StoreStruct
+  Modules.Mod.txt    see Error()   (recompilation not needed)
+  Graphics.Mod.txt
 20160307 - compiler ORP updated
    ORP.Statsequence (assignment)
    ORP.CompTypes  (dyn arrays:  t1.len = -1)

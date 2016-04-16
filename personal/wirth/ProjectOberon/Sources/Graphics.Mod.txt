@@ -1,4 +1,4 @@
-MODULE Graphics;   (*NW 21.12.89 / 18.11.2013*)
+MODULE Graphics;   (*NW 21.12.89 / 18.11.201 / 8.4.2016*)
   IMPORT SYSTEM, Files, Modules, Fonts, (*Printer,*) Texts, Oberon;
 
   CONST NameLen* = 32; GraphFileId = 0FAX; LibFileId = 0FBX;
@@ -545,7 +545,7 @@ MODULE Graphics;   (*NW 21.12.89 / 18.11.2013*)
   BEGIN NEW(cap); new := cap; cap.do := CapMethod
   END NewCaption;
 
-  PROCEDURE CopyCaption(src, dst: Caption);
+  PROCEDURE CopyCaption(src, dst: Object);
     VAR ch: CHAR; R: Texts.Reader;
   BEGIN
     dst.x := src.x; dst.y := src.y; dst.w := src.w; dst.h := src.h; dst.col := src.col;
@@ -556,7 +556,7 @@ MODULE Graphics;   (*NW 21.12.89 / 18.11.2013*)
     Texts.Append(T, TW.buf)
   END CopyCaption;
 
-  PROCEDURE ChangeCaption(obj: Caption; VAR M: Msg);
+  PROCEDURE ChangeCaption(obj: Object;  VAR M: Msg);
     VAR dx, x1, dy, y1, w, w1, h1, len: INTEGER;
       pos: LONGINT;
       ch: CHAR; patadr: INTEGER; fnt: Fonts.Font;
@@ -575,7 +575,7 @@ MODULE Graphics;   (*NW 21.12.89 / 18.11.2013*)
     END
   END ChangeCaption;
 
-  PROCEDURE CaptionSelectable(obj: Caption; x, y: INTEGER): BOOLEAN;
+  PROCEDURE CaptionSelectable(obj: Object; x, y: INTEGER): BOOLEAN;
   BEGIN
     RETURN (obj.x <= x) & (x < obj.x + obj.w) & (obj.y <= y) & (y < obj.y + obj.h)
   END CaptionSelectable;
@@ -588,7 +588,7 @@ MODULE Graphics;   (*NW 21.12.89 / 18.11.2013*)
     obj(Caption).len := len; Texts.Append(T, TW.buf)
   END ReadCaption;
 
-  PROCEDURE WriteCaption(obj: Caption; cno: INTEGER; VAR W: Files.Rider; VAR C: Context);
+  PROCEDURE WriteCaption(obj: Object; cno: INTEGER; VAR W: Files.Rider; VAR C: Context);
     VAR ch: CHAR; fno: BYTE;
       TR: Texts.Reader;
   BEGIN
