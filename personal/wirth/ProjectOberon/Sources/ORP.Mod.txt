@@ -784,8 +784,8 @@ MODULE ORP; (*N. Wirth 1.7.97 / 1.5.2016  Oberon compiler for RISC in Oberon-07*
       x: ORG.Item; tp: ORB.Type; ptbase: PtrBase;
       expo: BOOLEAN; id: ORS.Ident;
   BEGIN (*sync*) pbsList := NIL;
-    IF (sym < ORS.const) & (sym # ORS.end) THEN ORS.Mark("declaration?");
-      REPEAT ORS.Get(sym) UNTIL (sym >= ORS.const) OR (sym = ORS.end)
+    IF (sym < ORS.const) & (sym # ORS.end) & (sym # ORS.return) THEN ORS.Mark("declaration?");
+      REPEAT ORS.Get(sym) UNTIL (sym >= ORS.const) OR (sym = ORS.end) OR (sym = ORS.return)
     END ;
     IF sym = ORS.const THEN
       ORS.Get(sym);
