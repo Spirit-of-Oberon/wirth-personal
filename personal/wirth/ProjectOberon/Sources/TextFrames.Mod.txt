@@ -1,4 +1,4 @@
-MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 16.11.2015*)
+MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 1.6.20165*)
   IMPORT Modules, Input, Display, Viewers, Fonts, Texts, Oberon, MenuViewers;
 
   CONST replace* = 0; insert* = 1; delete* = 2; unmark* = 3; (*message id*)
@@ -171,10 +171,10 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 16.11.2015*)
     IF F.left >= barW THEN
       Display.ReplConst(Display.white, F.X + barW - 1, newY, 1, F.Y - newY, Display.invert)
     END;
-    F.H := F.H + F.Y - newY; F.Y := newY;
+    botY := F.Y + F.bot + dsr; F.H := F.H + F.Y - newY; F.Y := newY;
     IF F.trailer.next = F.trailer THEN Validate(F.text, F.org) END;
     L := F.trailer; org := F.org; curY := F.Y + F.H - F.top - asr;
-    WHILE L.next # F.trailer DO
+    WHILE (L.next # F.trailer) & (curY >= botY) DO
       L := L.next; org := org + L.len; curY := curY - lsp
     END;
     botY := F.Y + F.bot + dsr;

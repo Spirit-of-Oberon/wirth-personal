@@ -1,3 +1,7 @@
+20160601 - TextFrames.Mod.txt updated
+     see TextFrames.Extend      WHILE ... & (curY >= botY) ...
+20160508 - Oberon07.Report.pdf   see syntax of module  (";" removed)
+      see ORP.Declarations   (OR (sym = ORB.return))
 20160501 - Oberon07.Report.pdf   see defintion of Type
 20160418 - corrections: ORP.Mod.txt  ORG.Mod.txt
 20160410 - updates
