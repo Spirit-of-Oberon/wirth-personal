@@ -1,4 +1,4 @@
-MODULE System; (*JG 3.10.90 / NW 12.10.93 / NW 28.11.2015*)
+MODULE System; (*JG 3.10.90 / NW 12.10.93 / NW 20.6.2016*)
   IMPORT SYSTEM, Kernel, FileDir, Files, Modules,
     Input, Display, Viewers, Fonts, Texts, Oberon, MenuViewers, TextFrames;
 
@@ -86,11 +86,11 @@ MODULE System; (*JG 3.10.90 / NW 12.10.93 / NW 28.11.2015*)
     END
   END Open;
 
-  PROCEDURE Clear*;  (*used to clear Log*)
+  PROCEDURE Clear*;  (*clear Log*)
     VAR T: Texts.Text; F: Display.Frame; buf: Texts.Buffer;
   BEGIN F := Oberon.Par.frame;
     IF (F # NIL) & (F.next IS TextFrames.Frame) & (F = Oberon.Par.vwr.dsc) THEN
-      T := F.next(TextFrames.Frame).text; Texts.Delete(T, 0, T.len, buf)
+      NEW(buf); Texts.OpenBuf(buf); T := F.next(TextFrames.Frame).text; Texts.Delete(T, 0, T.len, buf)
     END
   END Clear;
 

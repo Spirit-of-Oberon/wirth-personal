@@ -1,3 +1,4 @@
+20160620 - System.Mod updated   (see procedure Clear)
 20160601 - TextFrames.Mod.txt updated
      see TextFrames.Extend      WHILE ... & (curY >= botY) ...
 20160508 - Oberon07.Report.pdf   see syntax of module  (";" removed)
