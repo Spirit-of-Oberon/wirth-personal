@@ -1,4 +1,4 @@
-MODULE Display;  (*NW 5.11.2013*)
+MODULE Display;  (*NW 5.11.2013 / 3.7.2016*)
   IMPORT SYSTEM;
 
   CONST black* = 0; white* = 1;  (*black = background*)
@@ -48,7 +48,7 @@ MODULE Display;  (*NW 5.11.2013*)
         ELSE (* (mode = paint) OR (mode = replace) & (col # black) *) SYSTEM.PUT(a1, pix + mid)
         END
       END
-    ELSE
+    ELSIF ar > al THEN
       left := {(x MOD 32) .. 31}; right := {0 .. ((x+w-1) MOD 32)};
       FOR a0 := al TO al + (h-1)*128 BY 128 DO
         SYSTEM.GET(a0, pixl); SYSTEM.GET(ar, pixr);
@@ -167,7 +167,7 @@ MODULE Display;  (*NW 5.11.2013*)
         SYSTEM.GET(a1, pix); SYSTEM.GET(pta0, ptw); SYSTEM.PUT(a1, (pix - mid) + (pix/ptw * mid)); INC(pta0, 4);
         IF pta0 = pta1 THEN pta0 := patadr+4 END
       END
-    ELSE
+    ELSIF ar > al THEN
       left := {(x MOD 32) .. 31}; right := {0 .. ((x+w-1) MOD 32)};
       FOR a0 := al TO al + (h-1)*128 BY 128 DO
         SYSTEM.GET(a0, pixl); SYSTEM.GET(pta0, ptw); SYSTEM.PUT(a0, (pixl - left) + (pixl/ptw * left));
