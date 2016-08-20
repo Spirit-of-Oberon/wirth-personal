@@ -1,3 +1,4 @@
+20160808 - FPMultiplier.v  FPMultiplier.Lola.txt     correct rounding
 20160704 - Display.Mod updated
     guard against w < 0 in Display.ReplConst
 20160620 - System.Mod updated   (see procedure Clear)
