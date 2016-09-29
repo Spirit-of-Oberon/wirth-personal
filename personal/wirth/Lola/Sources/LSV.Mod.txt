@@ -2,7 +2,7 @@ MODULE LSV;  (*Lola System: display Verilog; generate txt-File; NW 31.8.2015*)
   IMPORT Files, Texts, Oberon, LSB;
 
   VAR W: Texts.Writer;
-    nofgen: INTEGER;;
+    nofgen: INTEGER;
     Constructor: PROCEDURE (VAR x: LSB.Item);   (*to avoid forward reference*)
     F: Files.File; R: Files.Rider;
     C: ARRAY 64, 6 OF CHAR;
@@ -75,7 +75,7 @@ MODULE LSV;  (*Lola System: display Verilog; generate txt-File; NW 31.8.2015*)
           Write("{"); WriteInt(x.b.val); Write("{"); Expression(x.a);
           Write("}"); Write("}")
         ELSE
-          IF (x.tag >= LSB.and) & (x.tag <= LSB.gtr) THEN Write("(") END ;
+          IF (x.tag >= LSB.and) & (x.tag <= LSB.then) THEN Write("(") END ;
           Expression(x.a);
           IF x.tag = LSB.sel THEN Write("["); Expression(x.b); Write("]")
           ELSIF x.tag = LSB.lit THEN
@@ -84,7 +84,7 @@ MODULE LSV;  (*Lola System: display Verilog; generate txt-File; NW 31.8.2015*)
             END
           ELSE WriteString(C[x.tag]); Expression(x.b)
           END ;
-          IF (x.tag >= LSB.and) & (x.tag <= LSB.gtr) THEN Write(")") END
+          IF (x.tag >= LSB.and) & (x.tag <= LSB.then) THEN Write(")") END
         END
       END
     END

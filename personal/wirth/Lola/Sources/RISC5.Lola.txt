@@ -1,4 +1,4 @@
-MODULE RISC5 (IN clk, rst, stallX: BIT;  (*NW 26.10.2015*)
+MODULE RISC5 (IN clk, rst, stallX: BIT;  (*NW 18.9.2016*)
   IN inbus, codebus: WORD;
   OUT adr: [24] BIT;
     rd, wr, ben: BIT;
@@ -112,7 +112,7 @@ BEGIN PM(clk, pcmux[8:0], pmout);
   C0 := R[irc];
   C1 := q -> {v!16, imm} : C0 ;
   ira0 := Br -> 15'4 : ira;
-  adr := stallL -> B[23:0] + {0'4, off} : {pcmux, 0'2};
+  adr := stallL -> B[23:0] + {off.19!4, off} : {pcmux, 0'2};
   rd := Ldr & ~stallX & ~stall1;
   wr := Str & ~stallX & ~stall1;
   ben := p & ~q & v & ~stallX & ~stall1; (*byte enable*)

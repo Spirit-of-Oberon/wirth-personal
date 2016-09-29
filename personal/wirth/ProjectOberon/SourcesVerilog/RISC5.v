@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps  // 25.9.2015
+`timescale 1ns / 1ps  // 13.9.2016
 
 module RISC5(
 input clk, rst, stallX,
@@ -26,7 +26,7 @@ wire [3:0] op, ira, ira0, irb, irc;
 wire [2:0] cc;
 wire [15:0] imm;
 wire [19:0] off;
-wire [23:0] offL;
+wire [21:0] disp;
 
 wire regwr;
 wire stall, stallL, stallM, stallD, stallFA, stallFM, stallFD;
@@ -42,7 +42,6 @@ wire [31:0] quotient, remainder;
 wire [63:0] product;
 wire [31:0] fsum, fprod, fquot;
 
-wire MOV, LSL, ASR, ROR, AND, ANN, IOR, XOR;  // operation signals
 wire ADD, SUB, MUL, DIV; wire FAD, FSB, FML, FDV;
 wire LDR, STR, BR;
 
@@ -76,16 +75,7 @@ assign op  = ins[19:16];
 assign irc = ins[3:0];
 assign imm = ins[15:0];   // reg instr.
 assign off = ins[19:0];   // mem instr.
-assign offL = ins[23:0];  // branch instr.
-
-assign MOV = ~p & (op == 0);
-assign LSL = ~p & (op == 1);
-assign ASR = ~p & (op == 2);
-assign ROR = ~p & (op == 3);
-assign AND = ~p & (op == 4);
-assign ANN = ~p & (op == 5);
-assign IOR = ~p & (op == 6);
-assign XOR = ~p & (op == 7);
+assign disp = ins[21:0];  // branch instr.
 
 assign ADD = ~p & (op == 8);
 assign SUB = ~p & (op == 9);
@@ -107,7 +97,8 @@ assign C0 = R[irc];
 // Arithmetic-logical unit (ALU)
 assign ira0 = BR ? 15 : ira;
 assign C1 = q ? {{16{v}}, imm} : C0;
-assign adr = stallL ? B[23:0] + {4'b0, off} : {pcmux, 2'b00};
+// assign adr = stallL ? B[23:0] + {4'b0, off} : {pcmux, 2'b00};
+assign adr = stallL ? B[23:0] + {{4{off[19]}}, off} : {pcmux, 2'b00};
 assign rd = LDR & ~stallX & ~stall1;
 assign wr = STR & ~stallX & ~stall1;
 assign ben = p & ~q & v & ~stallX & ~stall1;  // byte enable
@@ -133,25 +124,27 @@ assign t2 = (sc1 == 3) ? {t1[19:0], 12'b0} :
     (sc1 == 1) ? {t1[27:0], 4'b0} : t1;
 assign t3 = C1[4] ? {t2[15:0], 16'b0} : t2;
 
-assign aluRes =
-  MOV ? (q ?
-    (~u ? {{16{v}}, imm} : {imm, 16'b0}) :
-    (~u ? C0 : (~v ? H : {N, Z, C, OV, 20'b0, 8'h50}))) :
-  LSL ? t3 :
-  (ASR|ROR) ? s3 :
-  AND ? B & C1 :
-  ANN ? B & ~C1 :
-  IOR  ? B | C1 :
-  XOR ? B ^ C1 :
-  ADD ? B + C1 + (u & C) :
-  SUB ? B - C1 - (u & C) :
-  MUL ? product[31:0] :
-  DIV ? quotient :
- (FAD|FSB) ? fsum :
-  FML ? fprod :
-  FDV ? fquot :
-  0;
-  
+assign aluRes =  // 21.71 ns
+  ~op[3] ?
+    (~op[2] ?
+      (~op[1] ?
+        (~op[0] ? 
+          (q ?  // MOV
+            (~u ? {{16{v}}, imm} : {imm, 16'b0}) :
+            (~u ? C0 : (~v ? H : {N, Z, C, OV, 20'b0, 8'h50}))) :
+          t3) :  //  LSL
+        s3) : //  ASR, ROR
+      (~op[1] ?
+        (~op[0] ? B & C1 : B & ~C1) :  // AND, ANN
+        (~op[0] ? B | C1 : B ^ C1))) : // IOR. XOR
+    (~op[2] ?
+       (~op[1] ?
+          (~op[0] ? B + C1 + (u&C) : B - C1 - (u&C)) :   // ADD, SUB
+           (~op[0] ? product[31:0] : quotient)) :  // MUL, DIV
+         (~op[1] ?    // flt.pt.
+          fsum :
+          (~op[0] ? fprod : fquot)));
+
 assign regwr = ~p & ~stall | (LDR & ~stallX & ~stall1) | (BR & cond & v & ~stallX);
 assign a0 = ~adr[1] & ~adr[0];
 assign a1 = ~adr[1] & adr[0];
@@ -183,7 +176,7 @@ assign cond = ins[27] ^
 
 assign pcmux = ~rst ? StartAdr :
   stall ? PC :
-  (BR & cond & u) ? offL[21:0] + nxpc :
+  (BR & cond & u) ? nxpc + disp :
   (BR & cond & ~u) ? C0[23:2] : nxpc;
   
 assign sa = aluRes[31];

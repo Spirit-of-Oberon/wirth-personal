@@ -1,4 +1,4 @@
-MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
+MODULE ORB;   (*NW 25.6.2014  / 17.9.2016  in Oberon-07*)
   IMPORT Files, ORS;
   (*Definition of data types Object and Type, which together form the data structure
     called "symbol table". Contains procedures for creation of Objects, and for search:
@@ -151,8 +151,8 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
   
   PROCEDURE InType(VAR R: Files.Rider; thismod: Object; VAR T: Type);
     VAR key: LONGINT;
-      ref, class, mno, form, np, readonly: INTEGER;
-      new, fld, par, obj, mod, impmod: Object;
+      ref, class, form, np, readonly: INTEGER;
+      fld, par, obj, mod: Object;
       t: Type;
       name, modname: ORS.Ident;
   BEGIN Read(R, ref);
@@ -281,8 +281,8 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
         fld := t.dsc;
         WHILE fld # NIL DO  (*fields*)
           IF fld.expo THEN
-            Write(R, Fld); Files.WriteString(R, fld.name); OutType(R, fld.type); Files.WriteNum(R, fld.val)
-          ELSE FindHiddenPointers(R, fld.type, fld.val)  (*offset*)
+            Write(R, Fld); Files.WriteString(R, fld.name); OutType(R, fld.type); Files.WriteNum(R, fld.val)  (*offset*)
+          ELSE FindHiddenPointers(R, fld.type, fld.val)
           END ;
           fld := fld.next
         END ;
@@ -329,11 +329,7 @@ MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
           ELSIF obj.type.form = Real THEN Files.WriteInt(R, obj.val)
           ELSE Files.WriteNum(R, obj.val)
           END
-        ELSIF obj.class = Var THEN
-          Files.WriteNum(R, obj.exno);
-          IF obj.type.form = String THEN
-            Files.WriteNum(R, obj.val DIV 10000H); obj.val := obj.val MOD 10000H
-          END
+        ELSIF obj.class = Var THEN Files.WriteNum(R, obj.exno)
         END
       END ;
       obj := obj.next
