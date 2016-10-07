@@ -1,4 +1,4 @@
-MODULE FPAdder(   (*NW  28.9.2015*)
+MODULE FPAdder(   (*NW  4.10.2016*)
   IN clk, run, u, v: BIT; x, y: WORD;
   OUT stall: BIT; z: WORD);
 
@@ -6,7 +6,7 @@ MODULE FPAdder(   (*NW  28.9.2015*)
     x3, y3, t3: [25] BIT;
     Sum: [27] BIT;
 
-  VAR xs, ys: BIT;  (*signs*)
+  VAR xs, ys, xn, yn: BIT;  (*signs, null*)
     xe, ye: [9] BIT;  (*exponents*)
     xm, ym: [25] BIT;  (*mantissas*)
 
@@ -26,9 +26,11 @@ BEGIN  (*unpack*)
   xs := x.31;
   xe := u -> 150'9 : {0'1, x[30:23]};
   xm := {(~u | x.23), x[22:0], 0'1};
+  xn := x[30:0] = 0;
   ys := y.31;
   ye := {0'1, y[30:23]};
   ym := {(~u & ~v), y[22:0], 0'1};
+  yn := y[30:0] = 0;
   dx := xe - ye; dy := ye - xe;
   e0 := dx.8 -> ye : xe;
   sx := dy.8 -> 0 : dy; sy := dx.8 -> 0 : dx;
@@ -93,7 +95,7 @@ BEGIN  (*unpack*)
   State := run -> State+1 : 0;
 
   z := v -> {Sum.26 ! 7, Sum[25:1]} :   (*FLOOR*)
-    x[30:0] = 0 -> (~u -> y : 0) :
-    y[30:0] = 0 -> x :
+    xn -> (u|yn -> 0 : y) :
+    yn -> x :
     (t3 = 0) | e1.8 -> 0 : {Sum.26, e1[7:0], t3[23:1]}
 END FPAdder.
