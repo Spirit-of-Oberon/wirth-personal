@@ -48,7 +48,7 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 18.9.2016 for RISC (LSCX)*)
   PROCEDURE CheckTypes(x, y, z: LSB.Item);  (*z.type = result type*)
     VAR xtyp, ytyp: LSB.Type;
   BEGIN xtyp := x.type; ytyp := y.type; z.type := xtyp; z.size := x.size; z.val := x.val;
-    IF xtyp = LSB.bitType THEN z.type := xtyp;
+    IF xtyp = LSB.bitType THEN
       IF ytyp = LSB.integer THEN  (* b + 0 *)
         IF y.val >= 2 THEN Err(20); LSS.Mark("only 0 or 1") END
       ELSIF ytyp = LSB.string THEN (* b + {...} *) Err(21)
@@ -264,7 +264,7 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 18.9.2016 for RISC (LSCX)*)
   END Param;
 
   PROCEDURE Statement;
-    VAR x, y, z, apar, npar: LSB.Item;
+    VAR x, y, z, w, apar, npar: LSB.Item;
       unit: LSB.UnitType; fpar: LSB.Object;
   BEGIN
     IF sym < LSS.ident THEN LSS.Mark("bad factor");

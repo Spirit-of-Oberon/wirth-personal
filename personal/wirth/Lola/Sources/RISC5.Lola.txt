@@ -53,9 +53,10 @@ MODULE RISC5 (IN clk, rst, stallX: BIT;  (*NW 18.9.2016*)
     cc: [3] BIT;
     imm: [16] BIT;
     off: [20] BIT;
-    offL: [24] BIT;
+    disp: [22] BIT;
 
-    regwr, stall, stallL, stallM, stallD, stallFA, stallFM, stallFD: BIT;
+    regwr, ccwr: BIT;
+    stall, stallL, stallM, stallD, stallFA, stallFM, stallFD: BIT;
     sc1, sc0: [2] BIT;  (*shift counts*)
 
     a0, a1, a2, a3: BIT;
@@ -92,7 +93,7 @@ BEGIN PM(clk, pcmux[8:0], pmout);
   irc := ins[3:0];
   imm := ins[15:0];  (*reg instr*)
   off := ins[19:0];    (*mem instr*)
-  offL := ins[23:0];  (*branch instr*)
+  disp := ins[21:0];  (*branch instr*)
 
   Add := ~p & (op = 8);
   Sub := ~p & (op = 9);
@@ -112,7 +113,7 @@ BEGIN PM(clk, pcmux[8:0], pmout);
   C0 := R[irc];
   C1 := q -> {v!16, imm} : C0 ;
   ira0 := Br -> 15'4 : ira;
-  adr := stallL -> B[23:0] + {off.19!4, off} : {pcmux, 0'2};
+  adr := stallL -> B[23:0] + {off.19 ! 4, off} : {pcmux, 0'2};
   rd := Ldr & ~stallX & ~stall1;
   wr := Str & ~stallX & ~stall1;
   ben := p & ~q & v & ~stallX & ~stall1; (*byte enable*)
@@ -153,13 +154,14 @@ BEGIN PM(clk, pcmux[8:0], pmout);
           (~op.0 -> B | C1 : B ^ C1)) ):   (*Ior, Xor*)
       (~op.2 ->
         (~op.1 ->
-          (~op.0 -> B + C + (u&C) : B - C1 - (u&C)) :   (*Add, Sub*)
+          (~op.0 -> B + C1 + (u&C) : B - C1 - (u&C)) :   (*Add, Sub*)
           (~op.0 -> product[31:0] : quotient)) :       (*Mul, Div*)
         (~op.1 ->
           fsum :     (*Fad, Fsb*)
           (~op.0 -> fprod : fquot))) ;  (*Fml, Fdv*)
 
-  regwr := ~p & ~stall | (Ldr & ~stallX & ~stall1) | (Br & cond & v & ~stallX);
+  ccwr := ~p & ~stall | (Ldr & ~stallX & ~stall1);
+  regwr := ccwr | (Br & cond & v & ~stallX);
   a0 := ~adr.1 & ~adr.0;
   a1 := ~adr.1 & adr.0;
   a2 := adr.1 & ~adr.0;
@@ -188,7 +190,7 @@ BEGIN PM(clk, pcmux[8:0], pmout);
       (cc = 7));
   pcmux := ~rst -> 3FF800H'22 :
     stall -> PC :
-    (Br & cond & u) -> offL[21:0]  + nxpc :
+    (Br & cond & u) -> disp + nxpc :
     (Br & cond & ~u) -> C0[23:2] : nxpc;
 
   sa := aluRes.31;
