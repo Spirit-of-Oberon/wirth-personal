@@ -1,4 +1,4 @@
-MODULE FPMultiplier(   (*NW 15.9.2015*)
+MODULE FPMultiplier(   (*NW 28.10.2016*)
   IN clk, run: BIT; x, y: WORD;
   OUT stall: BIT; z: WORD);
 
@@ -14,7 +14,7 @@ MODULE FPMultiplier(   (*NW 15.9.2015*)
 BEGIN sign := x.31 ^ y.31;   (*xor*)
   xe := x[30:23]; ye := y[30:23];
   e0 := {0'1, xe} + {0'1, ye};
-  e1 := e0 - 127 + P.47;
+  e1 := e0 - 127 + {0'8, P.47};
   stall := run & (S # 25);
   w0 := P.0 -> {1'1, y[22:0]} : 0;
   w1 := {0'1, P[47:24]} + {0'1, w0};

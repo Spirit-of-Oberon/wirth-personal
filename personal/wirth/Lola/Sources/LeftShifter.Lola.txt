@@ -1,0 +1,17 @@
+MODULE LeftShifter(    (*NW 10.11.2016*)
+  IN x: WORD; sc: [5] BIT;
+  OUT y: WORD);
+
+  VAR sc0, sc1: [2] BIT;
+    t1, t2: WORD;
+
+BEGIN sc0 := sc[1:0]; sc1 := sc[3:2];
+  t1 := (sc0 = 3) -> {x[28:0], 0'3} :
+      (sc0 = 2) -> {x[29:0], 0'2} :
+      (sc0 = 1) -> {x[30:0], 0'1} : x;
+  t2 := (sc1 = 3) -> {t1[19:0], 0'12} :
+      (sc1 = 2) -> {t1[23:0], 0'8} :
+      (sc1 = 1) -> {t1[27:0], 0'4} : t1;
+  y := sc.4 -> {t2[15:0], 0'16} : t2
+END LeftShifter.
+

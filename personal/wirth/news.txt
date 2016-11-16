@@ -1,3 +1,5 @@
+20161028 - stricter type rule in Lola, adffected are
+  LSC.Mod  RISC5.Lola  RISC5Top.Lola  FPMultiplier.Lola  FPDivider.Lola
 20161003 - FPAdder corrected.  x = 0.0, y = 0.0,  x - y
 20160918 - RISC5.v , RISC5.Lola    adr: offset with sign extension
    FPDivider.v  FP.Divider.Lola.txt     proper rounding

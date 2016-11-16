@@ -1,4 +1,4 @@
-MODULE RISC5Top(   (*NW 23.9.2015*)
+MODULE RISC5Top(   (*NW 28.10.2016*)
   IN CLK50M: BIT;
   IN btn: [4] BIT;
   IN swi: BYTE;
@@ -153,7 +153,7 @@ BEGIN
   gpout := ~rst -> 0 : (wr & ioenb & (iowadr = 8)) -> outbus[7:0] : gpout;
   gpoc := ~rst -> 0 : (wr & ioenb & (iowadr = 9)) -> outbus[7:0] : gpoc;
   cnt0 := limit -> 0 : cnt0 + 1;
-  cnt1 := cnt1 + limit;
+  cnt1 := cnt1 + {0'31, limit};
 
   clk := ~clk  (* @ 50 MHz *)
 END RISC5Top.

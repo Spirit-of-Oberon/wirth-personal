@@ -62,7 +62,7 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 18.9.2016 for RISC (LSCX)*)
           IF xtyp.size < Log(y.val) THEN Err(30) END
         ELSIF ytyp = LSB.string THEN   (*x + {...} *)
           IF xtyp.size # y.size THEN Err(31) END
-        ELSIF ytyp # LSB.bitType THEN Err(34)
+        ELSE Err(34)
         END
       ELSIF (ytyp IS LSB.ArrayType) & (xtyp(LSB.ArrayType).eltyp = ytyp(LSB.ArrayType).eltyp) THEN
         IF (xtyp.size # ytyp.size) THEN Err(40) END

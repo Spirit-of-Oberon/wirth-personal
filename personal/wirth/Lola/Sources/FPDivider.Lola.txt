@@ -1,4 +1,4 @@
-MODULE FPDivider(   (*NW 9.9.2016*)
+MODULE FPDivider(   (*NW 28.10.2016*)
   IN clk, run: BIT; x, y: WORD;
   OUT stall: BIT; z: WORD);
 
@@ -17,7 +17,7 @@ BEGIN
   sign := x.31 ^ y.31;   (*xor*)
   xe := x[30:23]; ye := y[30:23];
   e0 := {0'1, xe} - {0'1, ye};
-  e1 := e0 + 126 + Q.25;
+  e1 := e0 + 126 + {0'8, Q.25};
   stall := run & (S # 26);
 
   r0 := (S = 0) -> {1'2, x[22:0]} : {R, 0'1};
