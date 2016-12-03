@@ -12,7 +12,8 @@ MODULE Net; (*NW 3.7.88 / 25.8.91 / PR 7.8.13 / 9.12.13*)
   VAR W: Texts.Writer;
      Server: Oberon.Task;
      head0, head1: SCC.Header;
-     partner, dmy: ARRAY 8 OF CHAR;
+     partner: ARRAY 8 OF CHAR;
+     dmy: ARRAY 8 OF BYTE;
      protected: BOOLEAN; (*write-protection*)
 
   PROCEDURE SetPartner(name: ARRAY OF CHAR);
@@ -36,12 +37,13 @@ MODULE Net; (*NW 3.7.88 / 25.8.91 / PR 7.8.13 / 9.12.13*)
   END ReceiveHead;
 
   PROCEDURE FindPartner(name: ARRAY OF CHAR; VAR res: INTEGER);
-    VAR time: LONGINT; k: INTEGER; Id: ARRAY 8 OF CHAR;
+    VAR time: LONGINT; k: INTEGER;
+      Id: ARRAY 8 OF CHAR; IdB: ARRAY 8 OF BYTE;
   BEGIN SCC.Skip(SCC.Available()); res := 0; k := 0;
-    WHILE (k < 7) & (name[k] # 0X) DO Id[k] := name[k]; INC(k) END;
-    Id[k] := 0X;
+    WHILE (k < 7) & (name[k] # 0X) DO Id[k] := name[k]; IdB[k] := ORD(Id[k]); INC(k) END;
+    Id[k] := 0X; IdB[k] := 0; (* <-- also terminate IdB *)
     IF Id # partner THEN
-      head0.dadr := 0FFH; Send(NRQ, k+1, name); time := Oberon.Time() + T1;
+      head0.dadr := 0FFH; Send(NRQ, k+1, IdB); time := Oberon.Time() + T1;
       REPEAT
         SCC.ReceiveHead(head1);
         IF head1.valid THEN
@@ -143,6 +145,7 @@ MODULE Net; (*NW 3.7.88 / 25.8.91 / PR 7.8.13 / 9.12.13*)
       F: Files.File;
       pw, clock, newclock: LONGINT;
       Id: ARRAY 8 OF CHAR;
+      IdB: ARRAY 8 OF BYTE;
       FileName: ARRAY 32 OF CHAR;
   BEGIN
     SCC.ReceiveHead(head1);
@@ -179,7 +182,7 @@ Texts.WriteString(W, FileName);
 INC(i) END ;
         Send(ACK, 0, dmy); reply(0)
       ELSIF head1.typ = TRQ THEN
-        i := 0; AppendW(Oberon.Clock(), Id, 4, i); Send(TIM, 4, Id)
+        i := 0; AppendW(Oberon.Clock(), IdB, 4, i); Send(TIM, 4, IdB)
       ELSIF head1.typ = TIM THEN PickQ(newclock); PickS(Id); PickQ(pw);
         clock := Oberon.Clock();
         IF ~protected & (Id[0] # 0X) & (ABS(pw - clock) > 10) THEN
