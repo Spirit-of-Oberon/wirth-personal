@@ -1,4 +1,4 @@
-MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 1.6.20165*)
+MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 11.2.2017*)
   IMPORT Modules, Input, Display, Viewers, Fonts, Texts, Oberon, MenuViewers;
 
   CONST replace* = 0; insert* = 1; delete* = 2; unmark* = 3; (*message id*)
@@ -53,9 +53,8 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 1.6.20165*)
     W, KW: Texts.Writer; (*keyboard writer*)
 
   PROCEDURE Min (i, j: INTEGER): INTEGER;
-    VAR m: INTEGER;
-  BEGIN IF i >= j THEN m := j ELSE m := i END ;
-    RETURN m
+  BEGIN IF i < j THEN j := i END ;
+    RETURN j
   END Min;
 
   (*------------------display support------------------------*)
@@ -326,10 +325,8 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 1.6.20165*)
 
   PROCEDURE FlipCaret (F: Frame);
   BEGIN
-    IF F.carloc.x < F.W THEN
-      IF (F.carloc.y >= 10) & (F.carloc.x + 12 < F.W) THEN
-        Display.CopyPattern(Display.white, Display.hook, F.X + F.carloc.x, F.Y + F.carloc.y - 10, Display.invert)
-      END
+    IF (F.carloc.x < F.W) & (F.carloc.y >= 10) & (F.carloc.x + 12 < F.W) THEN
+      Display.CopyPattern(Display.white, Display.hook, F.X + F.carloc.x, F.Y + F.carloc.y - 10, Display.invert)
     END
   END FlipCaret;
 
@@ -342,8 +339,7 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 1.6.20165*)
   BEGIN
     IF F.trailer.next # F.trailer THEN
       LocateChar(F, X - F.X, Y - F.Y, F.carloc);
-    FlipCaret(F);
-      keysum := {};
+      FlipCaret(F); keysum := {};
       REPEAT Input.Mouse(keys, X, Y); keysum := keysum + keys;
         Oberon.DrawMouseArrow(X, Y); LocateChar(F, X - F.X, Y - F.Y, loc);
         IF loc.pos # F.carloc.pos THEN FlipCaret(F); F.carloc := loc; FlipCaret(F) END
@@ -692,12 +688,11 @@ MODULE TextFrames; (*JG 8.10.90 / NW 10.5.2013 / 1.6.20165*)
   PROCEDURE GetSelection* (F: Frame; VAR text: Texts.Text; VAR beg, end, time: LONGINT);
   BEGIN
     IF F.hasSel THEN
-      IF F.time > time THEN
+      IF F.text = text THEN
+        IF F.selbeg.pos < beg THEN beg := F.selbeg.pos END ;  (*leftmost*)
+        IF F.time > time THEN end := F.selend.pos; time := F.time END ; (*last selected*)
+      ELSIF F.time > time THEN
         text := F.text; beg := F.selbeg.pos; end := F.selend.pos; time := F.time
-      ELSIF F.text = text THEN
-        IF (F.time < time) & (F.selbeg.pos < beg) THEN beg := F.selbeg.pos
-          ELSIF (F.time > time) & (F.selend.pos > end) THEN end := F.selend.pos; time := F.time
-        END
       END
     END
   END GetSelection;
