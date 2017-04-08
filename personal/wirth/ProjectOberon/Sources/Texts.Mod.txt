@@ -1,4 +1,4 @@
-MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014*)
+MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 20.3.2017*)
   IMPORT Files, Fonts;
 
   CONST (*scanner symbol classes*)
@@ -338,7 +338,7 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014*)
       k: LONGINT;
       x: REAL;
   BEGIN ch := S.nextCh; i := 0;
-    WHILE (ch = " ") OR (ch = TAB) OR (ch = CR) DO
+    WHILE ~S.eot & (ch <= " ") DO
       IF ch = CR THEN INC(S.line) END ;
       Read(S, ch)
     END ;

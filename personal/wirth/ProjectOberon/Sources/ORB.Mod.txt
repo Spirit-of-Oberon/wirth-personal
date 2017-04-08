@@ -1,4 +1,4 @@
-MODULE ORB;   (*NW 25.6.2014  / 17.9.2016  in Oberon-07*)
+MODULE ORB;   (*NW 25.6.2014  / 4.4.2017  in Oberon-07*)
   IMPORT Files, ORS;
   (*Definition of data types Object and Type, which together form the data structure
     called "symbol table". Contains procedures for creation of Objects, and for search:
@@ -22,8 +22,9 @@ MODULE ORB;   (*NW 25.6.2014  / 17.9.2016  in Oberon-07*)
     Type* = POINTER TO TypeDesc;
 
     ObjDesc*= RECORD
-      class*, lev*, exno*: INTEGER;
+      class*, exno*: BYTE;
       expo*, rdo*: BOOLEAN;   (*exported / read-only*)
+      lev*: INTEGER;
       next*, dsc*: Object;
       type*: Type;
       name*: ORS.Ident;

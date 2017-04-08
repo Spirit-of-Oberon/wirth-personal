@@ -1,4 +1,4 @@
-MODULE ORP; (*N. Wirth 1.7.97 / 17.10.2016  Oberon compiler for RISC in Oberon-07*)
+MODULE ORP; (*N. Wirth 1.7.97 / 4.4.2017  Oberon compiler for RISC in Oberon-07*)
   IMPORT Texts, Oberon, ORS, ORB, ORG;
   (*Author: Niklaus Wirth, 2014.
     Parser of Oberon-RISC compiler. Uses Scanner ORS to obtain symbols (tokens),
@@ -161,29 +161,28 @@ MODULE ORP; (*N. Wirth 1.7.97 / 17.10.2016  Oberon compiler for RISC in Oberon-0
     END
   END selector;
 
-  PROCEDURE CompTypes(t0, t1: ORB.Type; varpar: BOOLEAN): BOOLEAN;
-
-    PROCEDURE EqualSignatures(t0, t1: ORB.Type): BOOLEAN;
-      VAR p0, p1: ORB.Object; com: BOOLEAN;
-    BEGIN com := TRUE;
-      IF (t0.base = t1.base) & (t0.nofpar = t1.nofpar) THEN
-        p0 := t0.dsc; p1 := t1.dsc;
-        WHILE p0 # NIL DO
-          IF (p0.class = p1.class) &  (p0.rdo = p1.rdo) &
-            ((p0.type = p1.type) OR
-            (p0.type.form = ORB.Array) & (p1.type.form = ORB.Array) & (p0.type.len = p1.type.len) & (p0.type.base = p1.type.base) OR
-            (p0.type.form = ORB.Proc) & (p1.type.form = ORB.Proc) & EqualSignatures(p0.type, p1.type))
-          THEN p0 := p0.next; p1 := p1.next
-          ELSE p0 := NIL; com := FALSE
-          END
+  PROCEDURE EqualSignatures(t0, t1: ORB.Type): BOOLEAN;
+    VAR p0, p1: ORB.Object; com: BOOLEAN;
+  BEGIN com := TRUE;
+    IF (t0.base = t1.base) & (t0.nofpar = t1.nofpar) THEN
+      p0 := t0.dsc; p1 := t1.dsc;
+      WHILE p0 # NIL DO
+        IF (p0.class = p1.class) &  (p0.rdo = p1.rdo) &
+          ((p0.type = p1.type) OR
+          (p0.type.form = ORB.Array) & (p1.type.form = ORB.Array) & (p0.type.len = p1.type.len) & (p0.type.base = p1.type.base) OR
+          (p0.type.form = ORB.Proc) & (p1.type.form = ORB.Proc) & EqualSignatures(p0.type, p1.type))
+        THEN p0 := p0.next; p1 := p1.next
+        ELSE p0 := NIL; com := FALSE
         END
-      ELSE com := FALSE
-      END ;
-      RETURN com
-    END EqualSignatures;
+      END
+    ELSE com := FALSE
+    END ;
+    RETURN com
+  END EqualSignatures;
   
+  PROCEDURE CompTypes(t0, t1: ORB.Type; varpar: BOOLEAN): BOOLEAN;
   BEGIN (*check for assignment compatibility*)
-    RETURN (t0 = t1)
+    RETURN (t0 = t1)    (*openarray assignment disallowed in ORG*)
       OR (t0.form = ORB.Array) & (t1.form = ORB.Array) & (t0.base =  t1.base) & (t0.len = t1.len)
       OR (t0.form = ORB.Record) & (t1.form = ORB.Record)  & IsExtension(t0, t1)
       OR ~varpar &
@@ -213,7 +212,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 17.10.2016  Oberon compiler for RISC in Oberon-0
       ELSIF (x.type.form = ORB.String) & (x.b = 2) & (par.class = ORB.Var) & (par.type.form = ORB.Char) THEN
         ORG.StrToChar(x); ORG.ValueParam(x)
       ELSIF (par.type.form = ORB.Array) & (par.type.base = ORB.byteType) & 
-          (par.type.len > 0) & (par.type.size = x.type.size) THEN
+          (par.type.len >= 0) & (par.type.size = x.type.size) THEN
         ORG.VarParam(x, par.type)
       ELSE ORS.Mark("incompatible parameters")
       END
@@ -398,7 +397,8 @@ MODULE ORP; (*N. Wirth 1.7.97 / 17.10.2016  Oberon compiler for RISC in Oberon-0
           OR (yf IN {ORB.Pointer, ORB.Proc}) & (xf = ORB.NilTyp) THEN
         IF rel <= ORS.neq THEN ORG.IntRelation(rel, x,  y) ELSE ORS.Mark("only = or #") END
       ELSIF (xf = ORB.Pointer) & (yf = ORB.Pointer) &
-          (IsExtension(x.type.base, y.type.base) OR IsExtension(y.type.base, x.type.base)) THEN
+          (IsExtension(x.type.base, y.type.base) OR IsExtension(y.type.base, x.type.base))
+          OR (xf = ORB.Proc) & (yf = ORB.Proc) & EqualSignatures(x.type, y.type) THEN
         IF rel <= ORS.neq THEN ORG.IntRelation(rel,  x, y) ELSE ORS.Mark("only = or #") END
       ELSIF (xf = ORB.Array) & (x.type.base.form = ORB.Char) &
             ((yf = ORB.String) OR (yf = ORB.Array) & (y.type.base.form = ORB.Char))
@@ -893,7 +893,6 @@ MODULE ORP; (*N. Wirth 1.7.97 / 17.10.2016  Oberon compiler for RISC in Oberon-0
 
   PROCEDURE Module;
     VAR key: LONGINT;
-      obj: ORB.Object;
       impid, impid1: ORS.Ident;
   BEGIN Texts.WriteString(W, "  compiling "); ORS.Get(sym);
     IF sym = ORS.module THEN
@@ -924,7 +923,6 @@ MODULE ORP; (*N. Wirth 1.7.97 / 17.10.2016  Oberon compiler for RISC in Oberon-0
         END ;
         Check(ORS.semicolon, "no ;")
       END ;
-      obj := ORB.topScope.next;
       ORG.Open(version); Declarations(dc); ORG.SetDataSize((dc + 3) DIV 4 * 4);
       WHILE sym = ORS.procedure DO ProcedureDecl; Check(ORS.semicolon, "no ;") END ;
       ORG.Header;
@@ -991,7 +989,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 17.10.2016  Oberon compiler for RISC in Oberon-0
     Oberon.Collect(0)
   END Compile;
 
-BEGIN Texts.OpenWriter(W); Texts.WriteString(W, "OR Compiler  17.9.2016");
+BEGIN Texts.OpenWriter(W); Texts.WriteString(W, "OR Compiler  4.4.2017");
   Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf);
   NEW(dummy); dummy.class := ORB.Var; dummy.type := ORB.intType;
   expression := expression0; Type := Type0; FormalType := FormalType0
