@@ -1,10 +1,11 @@
+20170413 - ORB.Mod.txt updated    see procedures  Import and Export
 20170406 - ORP.expression0, ORB.ObjDesc, ORS.HexString, Texts.Scan
 20170211 - TextFrames.Mod.txt   updated   (GetSelection
 20161116 - LeftShifter.v, RightShifter.v as new separate sub-modules, changed: RISC5.v
    also added LeftShifter.Lola, RightShifter.Lola, changed RISC5.Lola
 20161003 - FPAdder corrected.  x = 0.0, y = 0.0,  x - y
 20160918 - RISC5.v , RISC5.Lola    adr: offset with sign extension
-   FPDivider.v  FP.Divider.Lola.txt     proper rounding
+   FPDivider.v  FP.Divider.Lola.txt     p20170413roper rounding
    ORP.Mod, ORG.Mod, ORB.Mod   "aesthetic" improvements
    LSC.Mod , LSV.Mod    corrections
 20160808 - FPMultiplier.v  FPMultiplier.Lola.txt     correct rounding
