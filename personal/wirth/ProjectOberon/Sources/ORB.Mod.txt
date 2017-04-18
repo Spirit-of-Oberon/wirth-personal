@@ -221,7 +221,10 @@ MODULE ORB;   (*NW 25.6.2014  / 12.4.2017  in Oberon-07*)
         WHILE class # 0 DO
           NEW(obj); obj.class := class; Files.ReadString(R, obj.name);
           InType(R, thismod, obj.type); obj.lev := -thismod.lev;
-          IF class = Const THEN
+          IF class = Typ THEN
+            t := obj.type; t.typobj := obj; Read(R, k);  (*fixup bases of previously declared pointer types*)
+            WHILE k # 0 DO typtab[k].base := t; Read(R, k) END
+          ELSIF class = Const THEN
             IF obj.type.form = Real THEN Files.ReadInt(R, obj.val) ELSE Files.ReadNum(R, obj.val) END
           ELSIF class = Var THEN Files.ReadNum(R, obj.val); obj.rdo := TRUE
           END ;
@@ -311,7 +314,16 @@ MODULE ORB;   (*NW 25.6.2014  / 12.4.2017  in Oberon-07*)
       IF obj.expo THEN
         Write(R, obj.class); Files.WriteString(R, obj.name);
         OutType(R, obj.type);
-        IF obj.class = Const THEN
+        IF obj.class = Typ THEN
+          IF obj.type.form = Record THEN
+            obj0 := topScope.next;  (*check whether this is base of previously declared pointer types*)
+            WHILE obj0 # obj DO
+              IF (obj0.type.form = Pointer) & (obj0.type.base = obj.type) & (obj0.type.ref > 0) THEN Write(R, obj0.type.ref) END ;
+              obj0 := obj0.next
+            END
+          END ;
+          Write(R, 0)
+        ELSIF obj.class = Const THEN
           IF obj.type.form = Proc THEN Files.WriteNum(R, obj.exno)
           ELSIF obj.type.form = Real THEN Files.WriteInt(R, obj.val)
           ELSE Files.WriteNum(R, obj.val)
