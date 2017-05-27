@@ -1,5 +1,5 @@
-MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*) 
-  IMPORT SYSTEM, Files, Texts, Oberon, OSS, RISC;
+MODULE OSG; (* NW 19.12.94 / 20.10.07 / OSGX  9.5.2017*) 
+  IMPORT SYSTEM, Files, Texts, Oberon, OSS;
 
   CONST MemSize = 8192;
     (* class / mode*) Head* = 0;
@@ -29,7 +29,8 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
       next*, dsc*: Object;
       type*: Type;
       name*: OSS.Ident;
-      val*, nofpar*: LONGINT
+      val*, nofpar*: LONGINT;
+      comd*: BOOLEAN
     END ;
 
     TypeDesc* = RECORD
@@ -41,7 +42,8 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
   
   VAR boolType*, intType*: Type;
     curlev*, pc*: INTEGER;
-    entry, fixlist: LONGINT;
+    curSB: INTEGER;
+    entry, fixlist, fixorgD: LONGINT;
     RH: LONGINT;  (*register stack pointer*)
     W: Texts.Writer;
     relmap: ARRAY 6 OF INTEGER;
@@ -98,6 +100,10 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
     RETURN cond
   END negated;
 
+  PROCEDURE invalSB;
+  BEGIN curSB := 1
+  END invalSB;
+
   PROCEDURE fix(at, with: LONGINT);
   BEGIN code[at] := code[at] DIV 1000000H * 1000000H + (with MOD 1000000H)
   END fix;
@@ -110,11 +116,16 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
     END
   END FixLink;
   
+  PROCEDURE GetSB;
+  BEGIN
+    IF curSB = 1 THEN Put2(Ldw, SB, 0, pc-fixorgD); fixorgD := pc-1; curSB := 0 END
+  END GetSB;
+
   PROCEDURE load(VAR x: Item);
   BEGIN
     IF x.mode # Reg THEN
       IF x.mode = Var THEN
-        IF x.r > 0 THEN (*local*) Put2(Ldw, RH, SP, x.a) ELSE Put2(Ldw, RH, SB, x.a) END ;
+        IF x.r > 0 THEN (*local*) Put2(Ldw, RH, SP, x.a) ELSE GetSB; Put2(Ldw, RH, SB, x.a) END ;
         x.r := RH; incR
       ELSIF x.mode = Par THEN Put2(Ldw, RH, x.r, x.a); Put2(Ldw, RH, RH, 0); x.r := RH; incR
       ELSIF x.mode = Const THEN
@@ -133,7 +144,7 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
   PROCEDURE loadAdr(VAR x: Item);
   BEGIN
     IF x.mode = Var THEN
-      IF x.r > 0 THEN (*local*) Put1(Add, RH, SP, x.a); x.r := RH ELSE Put1(Add, RH, SB, x.a) END ;
+      IF x.r > 0 THEN (*local*) Put1(Add, RH, SP, x.a); x.r := RH ELSE GetSB; Put1(Add, RH, SB, x.a) END ;
       incR
     ELSIF x.mode = Par THEN Put2(Ldw, RH, SP, x.a); Put1(Add, RH, RH, x.b); x.r := RH; incR
     ELSIF (x.mode = RegI) & (x.a # 0) THEN Put1(Add, x.r, x.r, x.a)
@@ -197,7 +208,7 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
       IF y.mode # Reg THEN load(y) END ;
       IF s = 4 THEN Put1(Lsl, y.r, y.r, 2) ELSE Put1(Mul, y.r, y.r, s) END ;
       IF x.mode = Var THEN
-        IF x.r > 0 THEN Put0(Add, y.r, SP, y.r) ELSE Put0(Add, y.r, SB, y.r) END ;
+        IF x.r > 0 THEN Put0(Add, y.r, SP, y.r) ELSE GetSB; Put0(Add, y.r, SB, y.r) END ;
         x.mode := RegI; x.r := y.r
       ELSIF x.mode = Par THEN
         Put2(Ldw, RH, SP, x.a); Put0(Add, y.r, RH, y.r); x.mode := RegI; x.r := y.r
@@ -307,7 +318,7 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
   PROCEDURE Store*(VAR x, y: Item); (* x := y *)
   BEGIN load(y);
     IF x.mode = Var THEN
-      IF x.r > 0 THEN (*local*) Put2(Stw, y.r, SP, x.a) ELSE Put2(Stw, y.r, SB, x.a) END
+      IF x.r > 0 THEN (*local*) Put2(Stw, y.r, SP, x.a) ELSE GetSB; Put2(Stw, y.r, SB, x.a) END
     ELSIF x.mode = Par THEN Put2(Ldw, RH, SP, x.a); Put2(Stw, y.r, RH, x.b)
     ELSIF x.mode = RegI THEN Put2(Stw, y.r, x.r, x.a); DEC(RH)
     ELSE OSS.Mark("illegal assignment")
@@ -359,13 +370,14 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
   END BJump;
 
   PROCEDURE Call*(VAR obj: Object);
-  BEGIN Put3(3, 7, obj.val - pc-1); RH := 0
+  BEGIN Put3(3, 7, (obj.val DIV 4) - pc-1); RH := 0
   END Call;
 
-  PROCEDURE Enter*(parblksize, locblksize: LONGINT);
+  PROCEDURE Enter*(parblksize, locblksize: LONGINT; comd: BOOLEAN);
     VAR a, r: LONGINT;
   BEGIN a := 4; r := 0; Put1(Sub, SP, SP, locblksize); Put2(Stw, LNK, SP, 0);
-    WHILE a < parblksize DO Put2(Stw, r, SP, a); INC(r); INC(a, 4) END
+    WHILE a < parblksize DO Put2(Stw, r, SP, a); INC(r); INC(a, 4) END ;
+  (* IF comd THEN Put2(Ldw, SB, 0, 0) END *)
   END Enter;
 
   PROCEDURE Return*(size: LONGINT);
@@ -376,36 +388,95 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
   BEGIN load(x); x.type := intType
   END Ord;
 
+  PROCEDURE OpenInput*;
+  BEGIN Put3(3, 7, pc - fixlist + 101000H); fixlist := pc-1; invalSB
+  END OpenInput;
+
   PROCEDURE ReadInt*(VAR x: Item);
-  BEGIN loadAdr(x); Put1(Mov, RH, 0, -4); Put2(Ldw, RH, RH, 0); Put2(Stw, RH, x.r, 0); DEC(RH)
+  BEGIN loadAdr(x); Put3(3, 7, pc - fixlist + 102000H); fixlist := pc-1; DEC(RH); invalSB
   END ReadInt;
 
   PROCEDURE eot*(VAR x: Item);
-  BEGIN Put1(Mov, RH, 0, -8); Put2(Ldw, RH, RH, 0); SetCC(x, EQ)
+  BEGIN Put3(3, 7, pc - fixlist + 103000H); fixlist := pc-1; Put1(Cmp, 0, 0, Texts.Int); SetCC(x, NE); invalSB
   END eot;
 
-  PROCEDURE WriteInt*(VAR x: Item);
-  BEGIN load(x); Put1(Mov, RH, 0, -4); Put2(Stw, x.r, RH, 0); DEC(RH)
-  END WriteInt;
-
   PROCEDURE WriteChar*(VAR x: Item);
-  BEGIN load(x); Put1(Mov, RH, 0, -8); Put2(Stw, x.r, RH, 0); DEC(RH)
+  BEGIN load(x); Put3(3, 7, pc - fixlist + 104000H); fixlist:= pc-1; DEC(RH); invalSB
   END WriteChar;
 
+  PROCEDURE WriteInt*(VAR x, y: Item);
+  BEGIN load(x); load(y); Put3(3, 7, pc - fixlist + 105000H); fixlist := pc-1; DEC(RH, 2); invalSB
+  END WriteInt;
+
   PROCEDURE WriteLn*;
-  BEGIN Put1(Mov, RH, 0, -12); Put2(Stw, RH, RH, 0)
+  BEGIN Put3(3, 7, pc - fixlist + 106000H); fixlist := pc-1; invalSB
   END WriteLn;
 
+  PROCEDURE Switch*(VAR x: Item);
+  BEGIN Put1(Mov, RH, 0, -60); Put2(Ldw, RH, RH, 0);
+    x.mode := Reg; x.type := intType; x.r := RH; INC(RH)
+  END Switch;
+
+  PROCEDURE LED*(VAR x: Item);
+  BEGIN load(x); Put1(Mov, RH, 0, -60); Put2(Stw, x.r, RH, 0); DEC(RH)
+  END LED ;
+
   PROCEDURE Open*;
-  BEGIN curlev := 0; pc := 0; RH := 0; Put3(2, 7, 0)
+  BEGIN curlev := 0; pc := 0; RH := 0; fixlist := 0; fixorgD := 0
   END Open;
 
   PROCEDURE Header*(size: LONGINT);
-  BEGIN entry := pc; fix(0, pc-1)
+  BEGIN entry := pc*4; Put1(Sub, SP, SP, 4); Put2(Stw, LNK, SP, 0); invalSB
   END Header;
 
-  PROCEDURE Close*;
-  BEGIN Put1(Mov, 0, 0, 0); Put3(0, 7, 0)
+  PROCEDURE MakeFileName(VAR FName: OSS.Ident; name, ext: ARRAY OF CHAR);
+    VAR i, j: INTEGER;
+  BEGIN i := 0; j := 0;  (*assume name suffix less than 4 characters*)
+    WHILE (i < OSS.IdLen-5) & (name[i] > 0X) DO FName[i] := name[i]; INC(i) END ;
+    REPEAT FName[i]:= ext[j]; INC(i); INC(j) UNTIL ext[j] = 0X;
+    FName[i] := 0X
+  END MakeFileName;
+
+  PROCEDURE Close*(VAR modid: OSS.Ident; key, datasize: LONGINT; topScope: Object);  (*write code file*)
+    VAR i, nofent, nofimp, comsize, size: INTEGER;
+      obj: Object;
+      name: OSS.Ident;
+      F: Files.File; R: Files.Rider;
+  BEGIN Put2(Ldw, LNK, SP, 0); Put1(Add, SP, SP, 4); Put3(BR, 7, LNK);
+    obj := topScope.next; comsize := 4; nofent := 1; nofimp := 1;
+    WHILE obj # NIL DO
+      IF obj.comd THEN i := 0; (*count entries and commands*)
+        WHILE obj.name[i] # 0X DO INC(i) END ;
+        i := (i+4) DIV 4 * 4; INC(comsize, i+4); INC(nofent); INC(nofimp)
+      END ;
+      obj := obj.next
+    END ;
+    size := datasize + comsize + (pc + nofimp + nofent + 1)*4;
+    MakeFileName(name, modid, ".rsc"); (*write code file*)
+    F := Files.New(name); Files.Set(R, F, 0);
+    Files.WriteString(R, modid); Files.WriteInt(R, key); Files.Write(R, 1X);   (*version*)
+    Files.WriteInt(R, size);
+    Files.WriteString(R, "IO"); Files.WriteInt(R, 3A8372E2H); Files.Write(R, 0X);  (*import*)
+    Files.WriteInt(R, 0);  (*no type descriptors*)
+    Files.WriteInt(R, datasize);  (*data*)
+    Files.WriteInt(R, 0);   (*no strings*)
+    Files.WriteInt(R, pc);  (*code len*)
+    FOR i := 0 TO pc-1 DO Files.WriteInt(R, code[i]) END ;  (*program*)
+    obj := topScope.next;
+    WHILE obj # NIL DO  (*commands*)
+      IF obj.comd THEN Files.WriteString(R, obj.name); Files.WriteInt(R, obj.val) END ;
+      obj := obj.next
+    END ;
+    Files.Write(R, 0X);
+    Files.WriteInt(R, nofent); Files.WriteInt(R, entry);   (*of program body*)
+    obj := topScope.next;
+    WHILE obj # NIL DO  (*entries*)
+      IF obj.comd THEN Files.WriteInt(R, obj.val) END ;
+      obj := obj.next
+    END ;
+    Files.WriteInt(R, -1);   (*no pointer variables*)
+    Files.WriteInt(R, fixlist); Files.WriteInt(R, fixorgD); Files.WriteInt(R, 0); Files.WriteInt(R, entry);
+    Files.Write(R, "O"); Files.Register(F)
   END Close;
 
   (*-------------------- output -----------------------*)
@@ -428,7 +499,7 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
       a := w DIV 1000000H MOD 10H;
       b := w DIV 100000H MOD 10H;
       Texts.WriteInt(W, i, 4); Texts.WriteHex(W, w); Texts.Write(W, 9X);
-      IF ~ODD(w DIV 80000000H) THEN  (*~p:  register instruction*)
+      IF ASR(w, 31) = 0 THEN  (*~p:  register instruction*)
         op := w DIV 10000H MOD 10H;
         Texts.WriteString(W, mnemo0[op]); WriteReg(a); WriteReg(b);
         IF ~ODD(w DIV 40000000H) THEN (*~q*) WriteReg(w MOD 10H)
@@ -459,11 +530,6 @@ MODULE OSG; (* NW 19.12.94 / 20.10.07 / 26.10.2013*)
     IF k >= 10 THEN INC(k, 27H) END ; 
     RETURN CHR(k+30H)
   END HexCh;
-
-  PROCEDURE Execute*;
-    VAR S: Texts.Scanner;
-  BEGIN Texts.OpenScanner(S, Oberon.Par.text, Oberon.Par.pos); RISC.Execute(code, pc, S, W)
-  END Execute;
 
 BEGIN Texts.OpenWriter(W);
   NEW(boolType); boolType.form := Boolean; boolType.size := 4;

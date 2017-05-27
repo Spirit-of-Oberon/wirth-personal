@@ -1,3 +1,11 @@
+20170528 - Oberon0 - Compiler Construction
+   To the Oberon0 compiler in the book Compiler Construction is attached an elulator for RISC5. 
+   Since now an efficient emulator is available, and also a hardware RISC5 on an FPGA board,
+   it no longer makes sense to run a RISC-emulator on a RISC processor. I have therefore changed
+   the compiler to generate code in the format of the regular Oberon loader. The language Oberon0
+   (subset of Oberon) remains unchanged, except for some I/O predefined procedures. Changes 
+   are printed in red in the book.
+   OSP.Mod, OSG.Mod, OSS.Mod, TestOberon0.Mod
 20170419 - ORB.Mod.txt updated - changes of 13.4. undone
 20170413 - ORB.Mod.txt updated    see procedures  Import and Export
 20170406 - ORP.expression0, ORB.ObjDesc, ORS.HexString, Texts.Scan

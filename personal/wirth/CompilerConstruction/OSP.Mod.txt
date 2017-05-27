@@ -1,10 +1,10 @@
-MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
+MODULE OSP; (* NW 23.9.93 / 9,5.2017   OSPX*)
   IMPORT Texts, Oberon, OSS, OSG;
 
   CONST WordSize = 4;
   VAR sym, level: INTEGER;
     topScope, universe, dummy: OSG.Object;
-    expression1: PROCEDURE (VAR x: OSG.Item);  (*to avoid forward reference*)
+    expression: PROCEDURE (VAR x: OSG.Item);  (*to avoid forward reference*)
     W: Texts.Writer;
   
   PROCEDURE NewObj(VAR obj: OSG.Object; class: INTEGER);
@@ -23,7 +23,7 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
   BEGIN s := topScope;
     REPEAT x := s.next;
       WHILE (x # NIL) & (x.name # OSS.id) DO x := x.next END ;
-      s := s.dsc
+       s := s.dsc
     UNTIL (x # NIL) OR (s = NIL);
     IF x = NIL THEN x := dummy; OSS.Mark("undef") END ;
     obj := x
@@ -66,7 +66,7 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
   BEGIN
     WHILE (sym = OSS.lbrak) OR (sym = OSS.period) DO
       IF sym = OSS.lbrak THEN
-        OSS.Get(sym); expression1(y);
+        OSS.Get(sym); expression(y);
         IF x.type.form = OSG.Array THEN
           CheckInt(y); OSG.Index(x, y); x.type := x.type.base
         ELSE OSS.Mark("not an array")
@@ -131,8 +131,9 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
   BEGIN
     IF sym = OSS.lparen THEN
       OSS.Get(sym);
-      IF fctno = 0 THEN (*ORD*) expression1(x); OSG.Ord(x)
+      IF fctno = 0 THEN (*ORD*) expression(x); OSG.Ord(x)
       ELSIF fctno = 1 THEN (*eot*) OSG.eot(x)
+      ELSE (*fctno = 2*) OSG.Switch(x)
       END ;
       IF sym = OSS.rparen THEN OSS.Get(sym) ELSE OSS.Mark("rparen expected") END
     ELSE OSS.Mark("param missing"); OSG.MakeConstItem(x, OSG.intType, 0)
@@ -156,7 +157,7 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
     ELSIF sym = OSS.char THEN OSG.MakeConstItem(x, OSG.intType, OSS.val); OSS.Get(sym)
     ELSIF sym = OSS.lparen THEN
       OSS.Get(sym);
-      IF sym # OSS.rparen THEN expression1(x) END ;
+      IF sym # OSS.rparen THEN expression(x) END ;
       Check(OSS.rparen, "no )")
     ELSIF sym = OSS.not THEN OSS.Get(sym); factor(x); CheckBool(x); OSG.Not(x)
     ELSIF sym = OSS.false THEN OSS.Get(sym); OSG.MakeConstItem(x, OSG.boolType, 0)
@@ -192,7 +193,7 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
     END
   END SimpleExpression;
 
-  PROCEDURE expression(VAR x: OSG.Item);
+  PROCEDURE expression0(VAR x: OSG.Item);
     VAR y: OSG.Item; op: INTEGER;
   BEGIN SimpleExpression(x);
     IF (sym >= OSS.eql) & (sym <= OSS.geq) THEN
@@ -200,20 +201,25 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
       IF x.type = y.type THEN OSG.Relation(op, x, y) ELSE OSS.Mark("incompatible types") END ;
       x.type := OSG.boolType
     END
-  END expression;
+  END expression0;
 
   PROCEDURE StandProc(pno: LONGINT);
     VAR x, y: OSG.Item;
   BEGIN
-    IF sym = OSS.lparen THEN
-      OSS.Get(sym); expression(x);
-      IF pno = 0 THEN  OSG.ReadInt(x)
-      ELSIF pno = 1 THEN OSG.WriteInt(x)
-      ELSIF pno = 2 THEN  OSG.WriteChar(x)
-          ELSE OSS.Mark("no lparen")
-          END ;
-          IF sym = OSS.rparen THEN OSS.Get(sym) ELSE OSS.Mark("no rparen") END ;
-        ELSIF pno = 3 THEN OSG.WriteLn
+    IF pno = 0 THEN  OSG.OpenInput
+    ELSIF pno IN {1, 2, 3, 5} THEN
+      IF sym = OSS.lparen THEN OSS.Get(sym); expression(x);
+        IF pno = 1 THEN OSG.ReadInt(x);
+        ELSIF pno = 2 THEN
+          IF sym = OSS.comma THEN OSS.Get(sym); expression(y); OSG.WriteInt(x, y) ELSE OSS.Mark("no comma") END
+        ELSIF pno = 3 THEN OSG.WriteChar(x)
+        ELSIF pno = 5 THEN OSG.LED(x)
+            END ;
+            IF sym = OSS.rparen THEN OSS.Get(sym) ELSE OSS.Mark("no rparen") END
+          ELSE OSS.Mark(" missing lparen")
+          END
+    ELSIF pno = 4 THEN  OSG.WriteLn
+    ELSE OSS.Mark("undef proc")
     END
   END StandProc;
 
@@ -402,15 +408,17 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
     
   BEGIN (* ProcedureDecl *) OSS.Get(sym);
     IF sym = OSS.ident THEN
-      procid := OSS.id;
-      NewObj(proc, OSG.Proc); OSS.Get(sym); parblksize := marksize; nofpar := 0;
+      procid := OSS.id; NewObj(proc, OSG.Proc); OSS.Get(sym); parblksize := marksize; nofpar := 0;
+    (* Texts.Write(W, "%"); Texts.WriteInt(W, sym, 4); Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf); *)
       OpenScope;  INC(level); proc.val := -1;
+      IF sym = OSS.times THEN proc.comd := TRUE; OSS.Get(sym) ELSE proc.comd := FALSE END ;
       IF sym = OSS.lparen THEN
         OSS.Get(sym);
         IF sym = OSS.rparen THEN OSS.Get(sym)
         ELSE FPSection(parblksize, nofpar);
           WHILE sym = OSS.semicolon DO OSS.Get(sym); FPSection(parblksize, nofpar) END ;
-          IF sym = OSS.rparen THEN OSS.Get(sym) ELSE OSS.Mark(")?") END
+          IF sym = OSS.rparen THEN OSS.Get(sym) ELSE OSS.Mark(")?") END ;
+          IF proc.comd THEN OSS.Mark("no params allowed") END
         END
       END ;
       locblksize := parblksize; proc.type := NIL; proc.dsc := topScope.next; proc.nofpar := nofpar;
@@ -419,7 +427,7 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
       WHILE sym = OSS.procedure DO
         ProcedureDecl; Check(OSS.semicolon, "; expected")
       END ;
-      proc.val := OSG.pc; OSG.Enter(parblksize, locblksize);
+      proc.val := OSG.pc * 4; OSG.Enter(parblksize, locblksize, proc.comd);
       IF sym = OSS.begin THEN OSS.Get(sym); StatSequence END ;
       Check(OSS.end, "no END");
       IF sym = OSS.ident THEN
@@ -431,12 +439,10 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
   END ProcedureDecl;
 
   PROCEDURE Module;
-    VAR modid: OSS.Ident; dc, tag: LONGINT;
+    VAR modid: OSS.Ident; dc: LONGINT;
   BEGIN Texts.WriteString(W, "  compiling ");
     IF sym = OSS.module THEN
-      OSS.Get(sym);
-      IF sym = OSS.times THEN tag := 1; OSS.Get(sym) ELSE tag := 0 END ;
-      OSG.Open; OpenScope; dc := 0; level := 0;
+      OSS.Get(sym); OSG.Open; OpenScope; dc := 0; level := 0;
       IF sym = OSS.ident THEN
         modid := OSS.id; OSS.Get(sym);
         Texts.WriteString(W, modid); Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf)
@@ -454,11 +460,11 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
       ELSE OSS.Mark("ident?")
       END ;
       IF sym # OSS.period THEN OSS.Mark(". ?") END ;
-      CloseScope;
       IF ~OSS.error THEN
-        OSG.Close; Texts.WriteString(W, "code generated");
+        OSG.Close(modid, 1, dc, topScope); Texts.WriteString(W, "code generated "); Texts.WriteString(W, modid);
         Texts.WriteInt(W, OSG.pc, 6); Texts.WriteInt(W, dc, 6); Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf)
-      END
+      END ;
+      CloseScope
     ELSE OSS.Mark("MODULE?")
     END
   END Module;
@@ -469,23 +475,27 @@ MODULE OSP; (* NW 23.9.93 / 20.10.07 / 30.10.2013*)
     IF time >= 0 THEN OSS.Init(T, beg); OSS.Get(sym); Module END
   END Compile;
 
-  PROCEDURE enter(name: OSS.Ident; cl: INTEGER; n: LONGINT;  type: OSG.Type);
+  PROCEDURE enter(name: ARRAY OF CHAR; cl: INTEGER; n: LONGINT;  type: OSG.Type);
     VAR obj: OSG.Object;
   BEGIN NEW(obj);
     obj.class := cl; obj.val := n; obj.name := name; obj.type := type; obj.dsc := NIL;
     obj.next := topScope.next; topScope.next := obj
   END enter; 
 
-BEGIN Texts.OpenWriter(W); Texts.WriteString(W, "Oberon-0 Compiler OSP  30.10.2013");
+BEGIN Texts.OpenWriter(W); Texts.WriteString(W, "Oberon-0 Compiler OSP  9.5.2017");
   Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf);
   NEW(dummy); dummy.class := OSG.Var; dummy.type := OSG.intType; dummy.val := 0;
-  topScope := NIL; OpenScope; expression1 := expression;
-  enter("eot", OSG.SFunc, 1, OSG.boolType);
-  enter("ReadInt", OSG.SProc, 0, NIL);
-  enter("WriteInt", OSG.SProc, 1, NIL);
-  enter("WriteChar", OSG.SProc, 2, NIL);
-  enter("WriteLn", OSG.SProc, 3, NIL);
+  expression := expression0;
+  topScope := NIL; OpenScope;;
   enter("ORD", OSG.SFunc, 0, OSG.intType);
+  enter("eot", OSG.SFunc, 1, OSG.boolType);
+  enter("Switch", OSG.SFunc, 2, OSG.intType);
+  enter("OpenInput", OSG.SProc, 0, NIL);
+  enter("ReadInt", OSG.SProc, 1, NIL);
+  enter("WriteInt", OSG.SProc, 2, NIL);
+  enter("WriteChar", OSG.SProc, 3, NIL);
+  enter("WriteLn", OSG.SProc, 4, NIL);
+  enter("LED", OSG.SProc, 5, NIL);
   enter("BOOLEAN", OSG.Typ, 0, OSG.boolType);
   enter("INTEGER", OSG.Typ, 1, OSG.intType);
   universe := topScope
