@@ -1,3 +1,4 @@
+20170923 - OSP.Type0   "must point to named record"
 20170818 - CompilerConstruction/CompilerConstruction2.pdf  on p.72, epilog corrected
 20170528 - Oberon0 - Compiler Construction
    To the Oberon0 compiler in the book Compiler Construction is attached an elulator for RISC5. 

@@ -1,4 +1,4 @@
-MODULE ORP; (*N. Wirth 1.7.97 / 4.4.2017  Oberon compiler for RISC in Oberon-07*)
+MODULE ORP; (*N. Wirth 1.7.97 / 23.9.2017  Oberon compiler for RISC in Oberon-07*)
   IMPORT Texts, Oberon, ORS, ORB, ORG;
   (*Author: Niklaus Wirth, 2014.
     Parser of Oberon-RISC compiler. Uses Scanner ORS to obtain symbols (tokens),
@@ -768,7 +768,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 4.4.2017  Oberon compiler for RISC in Oberon-07*
         END ;
         ORS.Get(sym)
       ELSE Type(type.base);
-        IF type.base.form # ORB.Record THEN ORS.Mark("must point to record") END ;
+        IF (type.base.form # ORB.Record) OR (type.base.typobj = NIL) THEN ORS.Mark("must point to named record") END ;
         CheckRecLevel(level)
       END
     ELSIF sym = ORS.procedure THEN
