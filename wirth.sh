@@ -9,6 +9,8 @@ wget --user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/536.5 (KHTML, lik
 
 cd www.inf.ethz.ch 
 
+git status
+
 git commit -a -m "upd"
 
 git push
