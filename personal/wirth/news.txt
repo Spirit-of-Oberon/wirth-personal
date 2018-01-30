@@ -1,22 +1,9 @@
-20170923 - OSP.Type0   "must point to named record"
-20170818 - CompilerConstruction/CompilerConstruction2.pdf  on p.72, epilog corrected
-20170528 - Oberon0 - Compiler Construction
-   To the Oberon0 compiler in the book Compiler Construction is attached an elulator for RISC5. 
-   Since now an efficient emulator is available, and also a hardware RISC5 on an FPGA board,
-   it no longer makes sense to run a RISC-emulator on a RISC processor. I have therefore changed
-   the compiler to generate code in the format of the regular Oberon loader. The language Oberon0
-   (subset of Oberon) remains unchanged, except for some I/O predefined procedures. Changes 
-   are printed in red in the book.
-   OSP.Mod, OSG.Mod, OSS.Mod, TestOberon0.Mod
-20170419 - ORB.Mod.txt updated - changes of 13.4. undone
-20170413 - ORB.Mod.txt updated    see procedures  Import and Export
-20170406 - ORP.expression0, ORB.ObjDesc, ORS.HexString, Texts.Scan
-20170211 - TextFrames.Mod.txt   updated   (GetSelection
+20170211 - TextFrames.Mod.txt   updated   (GetSelection)
 20161116 - LeftShifter.v, RightShifter.v as new separate sub-modules, changed: RISC5.v
    also added LeftShifter.Lola, RightShifter.Lola, changed RISC5.Lola
 20161003 - FPAdder corrected.  x = 0.0, y = 0.0,  x - y
 20160918 - RISC5.v , RISC5.Lola    adr: offset with sign extension
-   FPDivider.v  FP.Divider.Lola.txt     p20170413roper rounding
+   FPDivider.v  FP.Divider.Lola.txt     proper rounding
    ORP.Mod, ORG.Mod, ORB.Mod   "aesthetic" improvements
    LSC.Mod , LSV.Mod    corrections
 20160808 - FPMultiplier.v  FPMultiplier.Lola.txt     correct rounding
