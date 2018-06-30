@@ -1,3 +1,7 @@
+20180628 - Update of RISC5, see RISC5.Update.
+  Cleanup; new feature: Interrupts. Instruction set unchanged.
+  New source files: RISC5Top.v, RISC5.v, RISC5a.v, Registers.v
+  (RISC5a is RISC5 without floating-point and without interrupt)
 20170211 - TextFrames.Mod.txt   updated   (GetSelection)
 20161116 - LeftShifter.v, RightShifter.v as new separate sub-modules, changed: RISC5.v
    also added LeftShifter.Lola, RightShifter.Lola, changed RISC5.Lola

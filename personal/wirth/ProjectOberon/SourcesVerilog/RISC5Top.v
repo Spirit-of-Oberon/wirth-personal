@@ -1,5 +1,5 @@
-`timescale 1ns / 1ps  // 22.9.2015
-// with SRAM, byte access, flt.-pt., and gpio
+`timescale 1ns / 1ps  // 14.6.2018
+// with SRAM, and gpio
 // PS/2 mouse and network 7.1.2014 PDR
 
 module RISC5Top(
@@ -24,23 +24,25 @@ module RISC5Top(
   inout [7:0] gpio);
 
 // IO addresses for input / output
-// 0  milliseconds / --
-// 1  switches / LEDs
-// 2  RS-232 data / RS-232 data (start)
-// 3  RS-232 status / RS-232 control
-// 4  SPI data / SPI data (start)
-// 5  SPI status / SPI control
-// 6  PS2 keyboard / --
-// 7  mouse / --
-// 8  general-purpose I/O data
-// 9  general-purpose I/O tri-state control
+// 0  -64  FFFFC0  milliseconds / --
+// 1  -60  FFFFC4  switches / LEDs
+// 2  -56  FFFFC8  RS-232 data / RS-232 data (start)
+// 3  -52  FFFFCC  RS-232 status / RS-232 control
+// 4  -48  FFFFD0  SPI data / SPI data (start)
+// 5  -44  FFFFD4  SPI status / SPI control
+// 6  -40  FFFFD8  PS2 mouse data, keyboard status / --
+// 7  -36  FFFFDC  keyboard data / --
+// 8  -32  FFFFE0  general-purpose I/O data
+// 9  -28  FFFFE4  general-purpose I/O tri-state control
 
 reg rst, clk;
 wire[23:0] adr;
 wire [3:0] iowadr; // word address
 wire [31:0] inbus, inbus0;  // data to RISC core
 wire [31:0] outbus;  // data from RISC core
-wire rd, wr, ben, ioenb, dspreq;
+wire [31:0] romout, codebus;  // code to RISC core
+wire SRbe0, SRbe1;
+wire rd, wr, ben, ioenb, vidreq;
 
 wire [7:0] dataTx, dataRx, dataKbd;
 wire rdyRx, doneRx, startTx, rdyTx, rdyKbd, doneKbd;
@@ -59,21 +61,27 @@ wire [17:0] vidadr;
 reg [7:0] gpout, gpoc;
 wire [7:0] gpin;
 
-RISC5 riscx(.clk(clk), .rst(rst), .rd(rd), .wr(wr), .ben(ben), .stallX(dspreq),
-   .adr(adr), .codebus(inbus0), .inbus(inbus), .outbus(outbus));
-RS232R receiver(.clk(clk), .rst(rst), .RxD(RxD), .fsel(bitrate), .done(doneRx),
-   .data(dataRx), .rdy(rdyRx));
-RS232T transmitter(.clk(clk), .rst(rst), .start(startTx), .fsel(bitrate),
-   .data(dataTx), .TxD(TxD), .rdy(rdyTx));
+RISC5 riscx(.clk(clk), .rst(rst), .irq(limit),
+   .rd(rd), .wr(wr), .ben(ben), .stallX(vidreq),
+   .adr(adr), .codebus(codebus), .inbus(inbus),
+	.outbus(outbus));
+PROM PM (.adr(adr[10:2]), .data(romout), .clk(~clk));
+RS232R receiver(.clk(clk), .rst(rst), .RxD(RxD), .fsel(bitrate),
+   .done(doneRx), .data(dataRx), .rdy(rdyRx));
+RS232T transmitter(.clk(clk), .rst(rst), .start(startTx),
+   .fsel(bitrate), .data(dataTx), .TxD(TxD), .rdy(rdyTx));
 SPI spi(.clk(clk), .rst(rst), .start(spiStart), .dataTx(outbus),
    .fast(spiCtrl[2]), .dataRx(spiRx), .rdy(spiRdy),
  	.SCLK(SCLK[0]), .MOSI(MOSI[0]), .MISO(MISO[0] & MISO[1]));
-VID vid(.clk(clk), .req(dspreq), .inv(swi[7]),
-   .vidadr(vidadr), .viddata(inbus0), .RGB(RGB), .hsync(hsync), .vsync(vsync));
+VID vid(.clk(clk), .req(vidreq), .inv(swi[7]),
+   .vidadr(vidadr), .viddata(inbus0), .RGB(RGB),
+	.hsync(hsync), .vsync(vsync));
 PS2 kbd(.clk(clk), .rst(rst), .done(doneKbd), .rdy(rdyKbd), .shift(),
    .data(dataKbd), .PS2C(PS2C), .PS2D(PS2D));
-MouseP Ms(.clk(clk), .rst(rst), .msclk(msclk), .msdat(msdat), .out(dataMs));
+MouseP Ms(.clk(clk), .rst(rst), .msclk(msclk),
+   .msdat(msdat), .out(dataMs));
 
+assign codebus = (adr[23:14] == 10'h3FF) ? romout : inbus0;
 assign iowadr = adr[5:2];
 assign ioenb = (adr[23:6] == 18'h3FFFF);
 assign inbus = ~ioenb ? inbus0 :
@@ -88,14 +96,14 @@ assign inbus = ~ioenb ? inbus0 :
     (iowadr == 8) ? {24'b0, gpin} :
     (iowadr == 9) ? {24'b0, gpoc} : 0);
 	 
-assign SRce0 = ben & adr[1];
-assign SRce1 = ben & ~adr[1];
-assign SRbe0 = ben & adr[0];
-assign SRbe1 = ben & ~adr[0];
+assign SRce0 = ~(~ben | ~adr[1]);
+assign SRce1 = ~(~ben | adr[1]);
+assign SRbe0 = ~(~ben | ~adr[0]);
+assign SRbe1 = ~(~ben | adr[0]);
 assign SRwe = ~wr | clk;
 assign SRoe = wr;
 assign SRbe = {SRbe1, SRbe0, SRbe1, SRbe0};
-assign SRadr = dspreq ? vidadr : adr[19:2];
+assign SRadr = vidreq ? vidadr : adr[19:2];
 
 genvar i;
 generate // tri-state buffer for SRAM
