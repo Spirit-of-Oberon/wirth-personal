@@ -1,4 +1,4 @@
-MODULE ORG; (* NW  18.4.2016 / 4.4.2017  code generator in Oberon-07 for RISC*)
+MODULE ORG; (* NW  18.4.2016 / 3.7.2018  code generator in Oberon-07 for RISC*)
   IMPORT SYSTEM, Files, ORS, ORB;
   (*Code generator for Oberon compiler for RISC processor.
      Procedural interface to Parser OSAP; result in array "code".
@@ -109,7 +109,7 @@ MODULE ORG; (* NW  18.4.2016 / 4.4.2017  code generator in Oberon-07 for RISC*)
     RETURN cond
   END negated;
 
-  PROCEDURE invalSB;
+  PROCEDURE invalSB*;
   BEGIN curSB := 1
   END invalSB;
 
@@ -719,13 +719,16 @@ MODULE ORG; (* NW  18.4.2016 / 4.4.2017  code generator in Oberon-07 for RISC*)
   BEGIN invalSB; RETURN pc
   END Here;
 
-  PROCEDURE FJump*(VAR L: LONGINT);
-  BEGIN Put3(BC, 7, L); L := pc-1
+  PROCEDURE FJump*(VAR L, sb, diffsb: INTEGER);
+  BEGIN Put3(BC, 7, L); L := pc-1;
+    IF (L # 0) & (sb # curSB) THEN INC(diffsb) END ;
+    sb := curSB
   END FJump;
 
-  PROCEDURE CFJump*(VAR x: Item);
+  PROCEDURE CFJump*(VAR x: Item; VAR sb: LONGINT);
   BEGIN
     IF x.mode # Cond THEN loadCond(x) END ;
+    sb := curSB;
     Put3(BC, negated(x.r), x.a); FixLink(x.b); x.a := pc-1
   END CFJump;
 
@@ -739,8 +742,8 @@ MODULE ORG; (* NW  18.4.2016 / 4.4.2017  code generator in Oberon-07 for RISC*)
     Put3(BC, negated(x.r), L-pc-1); FixLink(x.b); FixLinkWith(x.a, L)
   END CBJump;
 
-  PROCEDURE Fixup*(VAR x: Item);
-  BEGIN FixLink(x.a)
+  PROCEDURE Fixup*(VAR x: Item; sb: INTEGER);
+  BEGIN FixLink(x.a); curSB := sb
   END Fixup;
 
   PROCEDURE SaveRegs(r: LONGINT);  (* R[0 .. r-1]*)
@@ -798,7 +801,7 @@ MODULE ORG; (* NW  18.4.2016 / 4.4.2017  code generator in Oberon-07 for RISC*)
       Put1(Sub, SP, SP, locblksize); Put2(Str, LNK, SP, 0);
       WHILE a < parblksize DO Put2(Str, r, SP, a); INC(r); INC(a, 4) END
     ELSE (*interrupt procedure*)
-      IF locblksize > 0H THEN ORS.Mark("locals not allowed") END ;
+      IF locblksize > 4 THEN ORS.Mark("locals not allowed") END ;
       Put1(Sub, SP, SP, 12); Put2(Str, 0, SP, 0); Put2(Str, 1, SP, 4); Put2(Str, SB, SP, 8)
       (*R0, R1, SB saved on stack*)
     END
