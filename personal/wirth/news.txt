@@ -1,3 +1,6 @@
+20180720 - Update compiler: ORP.Mod.txt and ORG.Mod.txt
+  Cash for base adr of global variables "curSB" has been removed from ORG.Mod.
+  Removal of this optimization makes compiler simpler.
 20180628 - Update of RISC5, see RISC5.Update.
   Cleanup; new feature: Interrupts. Instruction set unchanged.
   New source files: RISC5Top.v, RISC5.v, RISC5a.v, Registers.v
