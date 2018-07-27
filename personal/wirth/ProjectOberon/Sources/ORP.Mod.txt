@@ -1,4 +1,4 @@
-MODULE ORP; (*N. Wirth 1.7.97 / 20.7.2018  Oberon compiler for RISC in Oberon-07*)
+MODULE ORP; (*N. Wirth 1.7.97 / 22.7.2018  Oberon compiler for RISC in Oberon-07*)
   IMPORT Texts, Oberon, ORS, ORB, ORG;
   (*Author: Niklaus Wirth, 2014.
     Parser of Oberon-RISC compiler. Uses Scanner ORS to obtain symbols (tokens),
@@ -212,7 +212,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 20.7.2018  Oberon compiler for RISC in Oberon-07
       ELSIF (x.type.form = ORB.String) & (x.b = 2) & (par.class = ORB.Var) & (par.type.form = ORB.Char) THEN
         ORG.StrToChar(x); ORG.ValueParam(x)
       ELSIF (par.type.form = ORB.Array) & (par.type.base = ORB.byteType) & 
-          (par.type.len > 0) & (par.type.size = x.type.size) THEN
+          (par.type.len >= 0) & (par.type.size = x.type.size) THEN
         ORG.VarParam(x, par.type)
       ELSE ORS.Mark("incompatible parameters")
       END
@@ -398,7 +398,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 20.7.2018  Oberon compiler for RISC in Oberon-07
         IF rel <= ORS.neq THEN ORG.IntRelation(rel, x,  y) ELSE ORS.Mark("only = or #") END
       ELSIF (xf = ORB.Pointer) & (yf = ORB.Pointer) &
           (IsExtension(x.type.base, y.type.base) OR IsExtension(y.type.base, x.type.base))
-          OR ((xf = ORB.Proc) & (yf = ORB.Proc) & EqualSignatures(x.type, y.type)) THEN
+          OR (xf = ORB.Proc) & (yf = ORB.Proc) & EqualSignatures(x.type, y.type) THEN
         IF rel <= ORS.neq THEN ORG.IntRelation(rel,  x, y) ELSE ORS.Mark("only = or #") END
       ELSIF (xf = ORB.Array) & (x.type.base.form = ORB.Char) &
             ((yf = ORB.String) OR (yf = ORB.Array) & (y.type.base.form = ORB.Char))
@@ -768,7 +768,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 20.7.2018  Oberon compiler for RISC in Oberon-07
         END ;
         ORS.Get(sym)
       ELSE Type(type.base);
-        IF (type.base.form # ORB.Record)OR(type.base.typobj = NIL) THEN ORS.Mark("must point to named record") END ;
+        IF (type.base.form # ORB.Record) OR (type.base.typobj = NIL) THEN ORS.Mark("must point to named record") END ;
         CheckRecLevel(level)
       END
     ELSIF sym = ORS.procedure THEN
@@ -858,10 +858,11 @@ MODULE ORP; (*N. Wirth 1.7.97 / 20.7.2018  Oberon compiler for RISC in Oberon-07
       ORS.CopyId(procid); ORS.Get(sym);
       ORB.NewObj(proc, ORS.id, ORB.Const);
       IF int THEN parblksize := 12 ELSE parblksize := 4 END ;
-      NEW(type); type.form := ORB.Proc; type.size := ORG.WordSize; proc.type := type;
+      NEW(type); type.form := ORB.Proc; type.size := ORG.WordSize;
+      proc.type := type; proc.val := -1; proc.lev := level; 
       CheckExport(proc.expo);
       IF proc.expo THEN proc.exno := exno; INC(exno) END ;
-      ORB.OpenScope; INC(level); proc.val := -1; proc.lev := level; type.base := ORB.noType;
+      ORB.OpenScope; INC(level); type.base := ORB.noType;
       ProcedureType(type, parblksize);  (*formal parameter list*)
       Check(ORS.semicolon, "no ;"); locblksize := parblksize; 
       Declarations(locblksize);
@@ -869,7 +870,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 20.7.2018  Oberon compiler for RISC in Oberon-07
       IF sym = ORS.procedure THEN
         L := 0; ORG.FJump(L);
         REPEAT ProcedureDecl; Check(ORS.semicolon, "no ;") UNTIL sym # ORS.procedure;
-        ORG.FixLink(L); proc.val := ORG.Here() * 4; proc.type.dsc := ORB.topScope.next
+        ORG.FixOne(L); proc.val := ORG.Here() * 4; proc.type.dsc := ORB.topScope.next
       END ;
       ORG.Enter(parblksize, locblksize, int);
       IF sym = ORS.begin THEN ORS.Get(sym); StatSequence END ;
@@ -953,7 +954,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 20.7.2018  Oberon compiler for RISC in Oberon-07
   BEGIN newSF := FALSE;
     IF S.nextCh = "/" THEN
       Texts.Scan(S); Texts.Scan(S); 
-      IF (S.class = Texts.Name)&( S.s[0] = "s") THEN newSF := TRUE END
+      IF (S.class = Texts.Name) & (S.s[0] = "s") THEN newSF := TRUE END
     END
   END Option;
 
@@ -989,7 +990,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 20.7.2018  Oberon compiler for RISC in Oberon-07
     Oberon.Collect(0)
   END Compile;
 
-BEGIN Texts.OpenWriter(W); Texts.WriteString(W, "OR Compiler  20.7.2018");
+BEGIN Texts.OpenWriter(W); Texts.WriteString(W, "OR Compiler  22.7.2018");
   Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf);
   NEW(dummy); dummy.class := ORB.Var; dummy.type := ORB.intType;
   expression := expression0; Type := Type0; FormalType := FormalType0

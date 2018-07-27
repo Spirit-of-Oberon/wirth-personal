@@ -1,5 +1,5 @@
-MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 10.7.2018  Oberon compiler; code generator for RISC*)
-  IMPORT SYSTEM, Files, Texts, Oberon, ORS, ORB;
+MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 22.7.2018  Oberon compiler; code generator for RISC*)
+  IMPORT SYSTEM, Files, ORS, ORB;
   (*Code generator for Oberon compiler for RISC processor.
      Procedural interface to Parser OSAP; result in array "code".
      Procedure Close writes code-files*)
@@ -43,14 +43,11 @@ MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 10.7.2018  Oberon compiler; code 
     fixorgP, fixorgD, fixorgT: LONGINT;   (*origins of lists of locations to be fixed up by loader*)
     check: BOOLEAN;  (*emit run-time checks*)
     version: INTEGER;  (* 0 = RISC-0, 1 = RISC-5 *)
-    W: Texts.Writer;
     
     relmap: ARRAY 6 OF INTEGER;  (*condition codes for relations*)
     code: ARRAY maxCode OF LONGINT;
     data: ARRAY maxTD OF LONGINT;  (*type descriptors*)
     str: ARRAY maxStrx OF CHAR;
-    mnemo0, mnemo1: ARRAY 16, 4 OF CHAR;
-    shmd: ARRAY 16 OF CHAR;
 
   (*instruction assemblers according to formats*)
 
@@ -93,10 +90,6 @@ MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 10.7.2018  Oberon compiler; code 
   BEGIN
     IF RH # 0 THEN ORS.Mark("Reg Stack"); RH := 0 END ;
     IF pc >= maxCode - 40 THEN ORS.Mark("program too long") END ;
-    IF frame # 0 THEN
-      Texts.WriteString(W, "frame"); Texts.WriteInt(W, pc, 4); Texts.WriteInt(W, frame, 4);
-      Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf); frame := 0
-    END
   END CheckRegs;
 
   PROCEDURE SetCC(VAR x: Item; n: LONGINT);
@@ -118,6 +111,10 @@ MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 10.7.2018  Oberon compiler; code 
   PROCEDURE fix(at, with: LONGINT);
   BEGIN code[at] := code[at] DIV C24 * C24 + (with MOD C24)
   END fix;
+
+  PROCEDURE FixOne*(at: LONGINT);
+  BEGIN fix(at, pc-at-1)
+  END FixOne;
 
   PROCEDURE FixLink*(L: LONGINT);
     VAR L1: LONGINT;
@@ -148,7 +145,7 @@ MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 10.7.2018  Oberon compiler; code 
 
   PROCEDURE GetSB(base: LONGINT);
   BEGIN
-    IF version = 0 THEN Put1(Mov, RH, 0, 0)
+    IF version = 0 THEN Put1(Mov, RH, 0, VarOrg0)
     ELSE Put2(Ldr, RH, -base, pc-fixorgD); fixorgD := pc-1
     END
   END GetSB;
@@ -1062,7 +1059,6 @@ MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 10.7.2018  Oberon compiler; code 
       obj := obj.next
     END ;
     size := varsize + strx + comsize + (pc + nofimps + nofent + nofptrs + 1)*4;  (*varsize includes type descriptors*)
-    Texts.WriteLn(W); Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf);
     
     ORB.MakeFileName(name, modid, ".rsc"); (*write code file*)
     F := Files.New(name); Files.Set(R, F, 0); Files.WriteString(R, modid); Files.WriteInt(R, key); Files.Write(R, CHR(version));
@@ -1117,91 +1113,5 @@ MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 10.7.2018  Oberon compiler; code 
 
   (*---------------decoder-----------------*)
 
-  PROCEDURE WriteReg(r: LONGINT);
-  BEGIN Texts.Write(W, " "); r := r MOD 10H;
-    IF r < 12 THEN Texts.Write(W, "R"); Texts.WriteInt(W, r, 1)
-    ELSIF r = 12 THEN Texts.WriteString(W, "MT")
-    ELSIF r = 13 THEN Texts.WriteString(W, "SB")
-    ELSIF r = 14 THEN Texts.WriteString(W, "SP")
-    ELSE Texts.WriteString(W, "LNK")
-    END
-  END WriteReg;
-
-  PROCEDURE Decode*;
-    VAR i, w, k, op, u, a, b, c: LONGINT;
-  BEGIN Texts.WriteString(W, "Decode "); Texts.WriteInt(W, fixorgP, 5); Texts.WriteInt(W, fixorgD, 5);
-    Texts.WriteInt(W, fixorgT, 5); Texts.WriteInt(W, entry, 5); Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf); i := 0;
-    WHILE i < tdx DO
-      IF i MOD 4 = 0 THEN Texts.WriteLn(W); Texts.WriteInt(W, i, 4) END ;
-      Texts.WriteHex(W, data[i]); INC(i)
-    END ;
-    Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf); i := 0;
-    WHILE i < pc DO
-      w := code[i];
-      k := w DIV 40000000H MOD 4;
-      a := w DIV 1000000H MOD 10H;
-      b := w DIV 100000H MOD 10H;
-      op := w DIV 10000H MOD 10H;
-      u := w DIV 20000000H MOD 2;
-      Texts.WriteInt(W, i, 4); Texts.WriteHex(W, w); Texts.Write(W, 9X);
-      IF k = 0 THEN
-        Texts.WriteString(W, mnemo0[op]);
-        IF u = 1 THEN Texts.Write(W, "'") END ;
-        WriteReg(a); WriteReg(b); WriteReg(w MOD 10H)
-      ELSIF k = 1 THEN
-        Texts.WriteString(W, mnemo0[op]);
-        IF u = 1 THEN Texts.Write(W, "'") END ;
-        WriteReg(a); WriteReg(b); w := w MOD 10000H;
-        IF w >= 8000H THEN w := w - 10000H END ;
-        Texts.WriteInt(W, w, 7)
-      ELSIF k = 2 THEN  (*LDR/STR*)
-        IF u = 1 THEN Texts.WriteString(W, "ST") ELSE Texts.WriteString(W, "LD") END ;
-        IF ODD(w DIV 10000000H) THEN Texts.Write(W, "B") ELSE Texts.Write(W, "R") END ;
-        WriteReg(a); WriteReg(b); w := w MOD 100000H;
-        IF w >= 80000H THEN w := w - 100000H END ;
-        Texts.WriteInt(W, w, 8)
-      ELSIF k = 3 THEN  (*Branch instr*)
-        Texts.Write(W, "B");
-        IF ODD(w DIV 10000000H) THEN Texts.Write(W, "L") END ;
-        Texts.WriteString(W, mnemo1[a]);
-        IF u = 0 THEN WriteReg(w MOD 10H) ELSE
-          w := w MOD 1000000H;
-          IF w >= 800000H THEN w := w - 1000000H END ;
-          Texts.WriteInt(W, w, 8)
-        END
-      END ;
-      Texts.WriteLn(W); INC(i)
-    END ;
-    Texts.WriteLn(W); Texts.Append(Oberon.Log, W.buf)
-  END Decode;
-
-BEGIN Texts.OpenWriter(W);
-  relmap[0] := 1; relmap[1] := 9; relmap[2] := 5; relmap[3] := 6; relmap[4] := 14; relmap[5] := 13;
-  mnemo0[0] := "MOV";
-  mnemo0[1] := "LSL";
-  mnemo0[2] := "ASR";
-  mnemo0[3] := "ROR";
-  mnemo0[4] := "AND";
-  mnemo0[5] := "ANN";
-  mnemo0[6] := "IOR";
-  mnemo0[7] := "XOR";
-  mnemo0[8] := "ADD";
-  mnemo0[9] := "SUB";
-  mnemo0[10] := "MUL";
-  mnemo0[11] := "DIV";
-  mnemo0[12] := "FAD";
-  mnemo0[13] := "FSB";
-  mnemo0[14] := "FML";
-  mnemo0[15] := "FDV";
-  mnemo1[0] := "MI ";
-  mnemo1[8] := "PL";
-  mnemo1[1] := "EQ ";
-  mnemo1[9] := "NE ";
-  mnemo1[2] := "LS ";
-  mnemo1[10] := "HI ";
-  mnemo1[5] := "LT ";
-  mnemo1[13] := "GE ";
-  mnemo1[6] := "LE ";
-  mnemo1[14] := "GT ";
-  mnemo1[15] := "NO ";
+BEGIN relmap[0] := 1; relmap[1] := 9; relmap[2] := 5; relmap[3] := 6; relmap[4] := 14; relmap[5] := 13;
 END ORG.
