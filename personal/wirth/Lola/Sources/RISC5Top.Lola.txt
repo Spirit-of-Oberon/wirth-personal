@@ -1,4 +1,4 @@
-MODULE RISC5Top(   (*NW 28.10.2016*)
+MODULE RISC5Top(   (*NW 25.7.2018*)
   IN CLK50M: BIT;
   IN btn: [4] BIT;
   IN swi: BYTE;
@@ -31,11 +31,15 @@ MODULE RISC5Top(   (*NW 28.10.2016*)
   9  general-purpose I/O tri-state control *)
 
 TYPE RISC5 := MODULE (
-    IN clk, rst, stallX: BIT;
+    IN clk, rst, irq, stallX: BIT;
       inbus, codebus: WORD;
     OUT adr: [24] BIT;
       rd, wr, ben: BIT;
       outbus: WORD) ^;
+
+  PROM := MODULE (IN clk: BIT;
+      IN adr: [9] BIT;
+      OUT data: WORD) ^;
 
   RS232R := MODULE (
     IN clk, rst, done, RxD, fsel: BIT;
@@ -75,7 +79,8 @@ REG (clk) rst: BIT;
   spiCtrl: [4] BIT;
   gpout, gpoc: BYTE;
 
-VAR riscx: RISC5;
+VAR riscx: RISC5;   (*instantiations*)
+  PM: PROM;  (*mem for boot loader*)
   receiver: RS232R;
   transmitter: RS232T;
   spi: SPI;  (*CD-ROM and net*)
@@ -90,6 +95,7 @@ VAR riscx: RISC5;
   be0, be1: BIT;
   inbus, inbus0: WORD;  (*data to RISC6 core*)
   outbus: WORD;   (*data from RISC6 core*)
+  romout, codebus: WORD;
 
   dataTx, dataRx, dataKbd: BYTE;
   rdyRx, doneRx, startTx, rdyTx, rdyKbd, doneKbd: BIT;
@@ -101,7 +107,8 @@ VAR riscx: RISC5;
   gpin: BYTE;
 
 BEGIN
-  riscx (clk, rst, dspreq, inbus, inbus0, adr, rd, wr, ben, outbus);
+  riscx (clk, rst, limit, dspreq, inbus, codebus, adr, rd, wr, ben, outbus);
+  PM (~clk, adr[10:2], romout);
   receiver (clk, rst, doneRx, RxD, bitrate, rdyRx, dataRx);
   transmitter (clk, rst, startTx, bitrate, dataTx, rdyTx, TxD);
   spi (clk, rst, spiStart, spiCtrl.2, outbus, spiRx, spiRdy, MISO.0 & MISO.1, MOSI1, SCLK1); 
@@ -111,6 +118,7 @@ BEGIN
   TS(SRdat, inbus0, outbus, ~wr);
   TS(gpio, gpin, gpout, gpoc);
 
+  codebus := (adr[23:14] = 3FFH'10) -> romout : inbus0;
   iowadr := adr[5:2];
   ioenb := (adr[23:6] = 3FFFFH'18);
   inbus := ~ioenb -> inbus0 :

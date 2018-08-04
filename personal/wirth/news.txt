@@ -1,3 +1,5 @@
+20180804 - Update RISC5 definition in Lola, according to changes on 2018 06 28
+  RISC5.Lola   RISC5Top.Lola
 20180720 - Update compiler: ORP.Mod.txt and ORG.Mod.txt
   Cash for base adr of global variables "curSB" has been removed from ORG.Mod.
   Removal of this optimization makes compiler simpler.
