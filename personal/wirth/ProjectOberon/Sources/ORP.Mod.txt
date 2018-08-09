@@ -1,4 +1,4 @@
-MODULE ORP; (*N. Wirth 1.7.97 / 22.7.2018  Oberon compiler for RISC in Oberon-07*)
+MODULE ORP; (*N. Wirth 1.7.97 / 8.8.2018  Oberon compiler for RISC in Oberon-07*)
   IMPORT Texts, Oberon, ORS, ORB, ORG;
   (*Author: Niklaus Wirth, 2014.
     Parser of Oberon-RISC compiler. Uses Scanner ORS to obtain symbols (tokens),
@@ -310,7 +310,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 22.7.2018  Oberon compiler for RISC in Oberon-07
     VAR obj: ORB.Object; rx: LONGINT;
   BEGIN (*sync*)
     IF (sym < ORS.char) OR (sym > ORS.ident) THEN ORS.Mark("expression expected");
-      REPEAT ORS.Get(sym) UNTIL (sym >= ORS.char) & (sym <= ORS.ident)
+      REPEAT ORS.Get(sym) UNTIL (sym >= ORS.char) & (sym <= ORS.for) OR (sym >= ORS.then)
     END ;
     IF sym = ORS.ident THEN
       qualident(obj);  
@@ -486,9 +486,9 @@ MODULE ORP; (*N. Wirth 1.7.97 / 22.7.2018  Oberon compiler for RISC in Oberon-07
 
   BEGIN (* StatSequence *)
     REPEAT (*sync*) obj := NIL;
-      IF ~((sym = ORS.ident) OR (sym >= ORS.if) & (sym <= ORS.for) OR (sym >= ORS.semicolon)) THEN
+      IF ~((sym >= ORS.ident)  & (sym <= ORS.for) OR (sym >= ORS.semicolon)) THEN
         ORS.Mark("statement expected");
-        REPEAT ORS.Get(sym) UNTIL (sym = ORS.ident) OR (sym >= ORS.if)
+        REPEAT ORS.Get(sym) UNTIL (sym = ORS.ident)
       END ;
       IF sym = ORS.ident THEN
         qualident(obj); ORG.MakeItem(x, obj, level);
@@ -870,7 +870,7 @@ MODULE ORP; (*N. Wirth 1.7.97 / 22.7.2018  Oberon compiler for RISC in Oberon-07
       IF sym = ORS.procedure THEN
         L := 0; ORG.FJump(L);
         REPEAT ProcedureDecl; Check(ORS.semicolon, "no ;") UNTIL sym # ORS.procedure;
-        ORG.FixOne(L); proc.val := ORG.Here() * 4; proc.type.dsc := ORB.topScope.next
+        ORG.FixLink(L); proc.val := ORG.Here() * 4; proc.type.dsc := ORB.topScope.next
       END ;
       ORG.Enter(parblksize, locblksize, int);
       IF sym = ORS.begin THEN ORS.Get(sym); StatSequence END ;
