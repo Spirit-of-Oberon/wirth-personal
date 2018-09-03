@@ -1,4 +1,4 @@
-MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 18.9.2016 for RISC (LSCX)*)
+MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 27.8.2018 for RISC (LSCX)*)
   IMPORT Texts, Oberon, LSB, LSS;
   
   VAR sym: INTEGER;
@@ -158,8 +158,7 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 18.9.2016 for RISC (LSCX)*)
           len := LSS.val; LSS.Get(sym);
           IF len < Log(x.val) THEN LSS.Mark("value too large") END
         ELSE LSS.Mark("integer ?"); len := 0
-        END ;
-        x.size := len
+        END
       ELSE len := 0
       END ;
       x.size := len
@@ -332,10 +331,10 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 18.9.2016 for RISC (LSCX)*)
   
   (* for variables and registers,, obj.val has the meaning
     0  register
-    1  register with imlicit clock "clk"
+    1  --
     2  variable
     3  output parameter
-    4  output parameter with register
+    4  --
     5  inout parameter
     6  input parameter  *)
   
@@ -412,8 +411,7 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 18.9.2016 for RISC (LSCX)*)
     VAR kind: INTEGER;
   BEGIN
     IF sym = LSS.in THEN LSS.Get(sym); kind := 6
-    ELSIF sym = LSS.out THEN LSS.Get(sym);
-      IF sym = LSS.reg THEN LSS.Get(sym); kind := 4 ELSE kind := 3 END
+    ELSIF sym = LSS.out THEN LSS.Get(sym); kind := 3
     ELSIF sym = LSS.inout THEN LSS.Get(sym); kind := 5
     END ;
     VarList(kind, NIL)
@@ -529,7 +527,8 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 18.9.2016 for RISC (LSCX)*)
   END Compile;
 
 BEGIN Texts.OpenWriter(W);
-  Texts.WriteString(W, "Lola compiler; NW 18.9.2016"); Texts.WriteLn(W);
+  Texts.WriteString(W, "Lola compiler; NW 27.8.2018"); Texts.WriteLn(W);
   factor := factor0; expression := expression0; Unit := Unit0;
-  NEW(top); bot := LSB.root; NEW(undef); undef.tag := 2; undef.type := LSB.bitType
+  NEW(top); bot := LSB.root;
+  NEW(undef); undef.tag := LSB.typ; undef.type := LSB.bitType; undef.next := NIL
 END LSC.

@@ -168,7 +168,7 @@ BEGIN
   pcmux0 := stall -> PC :
     RTI-> SPC[21:0] :
     (Br & cond) -> (u -> disp + nxpc : C0[23:2]) : nxpc;
-  pcmux := ~rst -> 3FF800H'22 : intAck -> 1 : pcmux0;
+  pcmux := ~rst -> StartAdr : intAck -> 1 : pcmux0;
 
   sa := aluRes.31;
   sb := B.31;

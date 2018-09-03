@@ -1,4 +1,4 @@
-MODULE LSV;  (*Lola System: display Verilog; generate txt-File; NW 31.8.2015*)
+MODULE LSV;  (*Lola System: display Verilog; generate txt-File; NW 27.8.2018*)
   IMPORT Files, Texts, Oberon, LSB;
 
   VAR W: Texts.Writer;
@@ -122,17 +122,16 @@ MODULE LSV;  (*Lola System: display Verilog; generate txt-File; NW 31.8.2015*)
   BEGIN param := TRUE;
     WHILE obj # LSB.root DO
       IF (obj.tag = LSB.var) & ~(obj.type IS LSB.UnitType) THEN
-        IF obj.val <= 1 THEN WriteString("reg ")
+        IF obj.val = 0 THEN WriteString("reg ")
         ELSIF obj.val = 2 THEN WriteString("wire ")
         ELSIF obj.val = 3 THEN WriteString("output ")
-        ELSIF obj.val = 4 THEN WriteString("output reg ")
         ELSIF obj.val = 5 THEN WriteString("inout ")
         ELSIF obj.val = 6 THEN WriteString("input ")
         ELSE WriteString("??? ")
         END ;
         BitArrLen(obj.type); WriteString(obj.name);
         obj1 := obj.next;
-        WHILE (obj1 # LSB.top) & (obj1.type = obj.type) & (obj1.val = obj.val) DO
+        WHILE (obj1 # LSB.root) & (obj1.type = obj.type) & (obj1.val = obj.val) DO
           WriteString(", "); obj := obj1; WriteString(obj.name); obj1 := obj.next
         END ;
         IF param & (obj.val >= 3) & (obj1.val < 3) THEN  (*end param list*) param := FALSE; Write(")")
@@ -195,19 +194,15 @@ MODULE LSV;  (*Lola System: display Verilog; generate txt-File; NW 31.8.2015*)
   END ObjList1;
 
   PROCEDURE ObjList2(obj: LSB.Object);  (*assignments to registers*)
-    VAR apar: LSB.Item; kind: LONGINT; clk: LSB.Item;
+    VAR clk: LSB.Item;
   BEGIN
     WHILE obj # LSB.root DO
-      IF (obj.tag = LSB.var) & ~(obj.type IS LSB.UnitType) & (obj.val < 2) THEN
-        WriteString("always @ (posedge "); kind := obj.val;
-        IF kind = 0 THEN Expression(obj.a)
-        ELSE (*kind = 1*) WriteString("clk")
-        END ;
+      IF (obj.tag = LSB.var) & ~(obj.type IS LSB.UnitType) & (obj.val = 0) THEN
+        WriteString("always @ (posedge "); clk := obj.a; Expression(clk);
         WriteString(") begin ");
         REPEAT WriteString(obj.name);
-          IF (kind = 1) & (obj.a # NIL) THEN Write("["); Expression(obj.a); Write("]") END ;
           WriteString(" <= "); Expression(obj.b); Write(";"); WriteLn; obj := obj.next
-        UNTIL (obj = LSB.top) OR (obj.val # kind);
+        UNTIL (obj = LSB.top) OR (obj.a # clk);
         WriteString("end"); WriteLn
       ELSE obj := obj.next
       END

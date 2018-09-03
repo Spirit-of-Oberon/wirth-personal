@@ -1,4 +1,4 @@
-MODULE GraphicFrames; (*NW 18.4.88 / 18.11.2013*)
+MODULE GraphicFrames; (*NW 18.4.88 / 18.11.2013 / 27.8.2018*)
   IMPORT SYSTEM, Display, Viewers, Input, Fonts, Texts, Graphics, Oberon, MenuViewers;
 
   CONST (*update message ids*)
@@ -454,7 +454,7 @@ MODULE GraphicFrames; (*NW 18.4.88 / 18.11.2013*)
     CASE M OF DrawMsg:
       x := obj.x + M.x; y := obj.y + M.y; w := obj.w; h := obj.h; f := M.f;
       IF (x+w > f.X) & (x < f.X1) & (y+h > f.Y) & (y < f.Y1) THEN
-        col := Display.white;
+        col := obj.col;
         IF (M.mode = 0) & obj.selected OR (M.mode = 1) THEN
           ReplPattern(f, col, Display.grey, x, y, w, h, Display.replace)
         ELSIF M.mode IN {0, 2} THEN ReplConst(f, col, x, y, w, h, Display.replace)
@@ -477,7 +477,7 @@ MODULE GraphicFrames; (*NW 18.4.88 / 18.11.2013*)
         Texts.OpenReader(R, Graphics.T, obj(Graphics.Caption).pos); Texts.Read(R, ch);
         IF M.mode = 0 THEN
           IF ch >= " " THEN
-            fnt := R.fnt; x0 := x; y0 := y - fnt.minY;
+            fnt := R.fnt; x0 := x; y0 := y - fnt.minY; col := obj.col;
             REPEAT Fonts.GetPat(fnt, ch, dx, x1, y1, w1, h1, pat);
               IF x0+x1+w1 <= f.X1 THEN
                 Display.CopyPattern(col, pat, x0+x1, y0+y1, Display.paint); INC(x0, dx); Texts.Read(R, ch)

@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps  // 28.6.2018
+`timescale 1ns / 1ps  // 1.9.2018
 //no interrupt, no floating-point
 
 module RISC5(
@@ -87,7 +87,7 @@ assign aluRes =
         (~op[0] ? 
           (q ?  // MOV
             (~u ? {{16{v}}, imm} : {imm, 16'b0}) :
-            (~u ? C0 : (~v ? H : {N, Z, C, OV, 20'b0, 8'h52}))) :
+            (~u ? C0 : (~v ? H : {N, Z, C, OV, 20'b0, 8'h54}))) :
           lshout) :  //  LSL
         rshout) : //  ASR, ROR
       (~op[1] ?
@@ -121,10 +121,10 @@ assign cond = IR[27] ^
    (cc == 6) & (S|Z) | // LE, GT
    (cc == 7)); // T, F
 
-assign pcmux = ~rst ? StartAdr :
-  stall ? PC :
+assign pcmux = ~rst | stall ?
+  (~rst ? StartAdr : PC) :
   (BR & cond) ? (u ? nxpc + disp : C0[23:2]) : nxpc;
-  
+
 assign sa = aluRes[31];
 assign sb = B[31];
 assign sc = C1[31];
