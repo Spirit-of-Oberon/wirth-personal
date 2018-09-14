@@ -1,3 +1,8 @@
+20180912 - Update Oberon compiler
+  Type tests other than for pointers and record parameters detected as illegal.
+  see ORP.TypeTest
+  Reexport of objects from aliased modules fixed. See ORB.OutType.
+  Updated files are ORP.Mod.txt, ORG.Mod.txt, ORB.Mod.txt
 20180804 - Update RISC5 definition in Lola, according to changes on 2018 06 28
   RISC5.Lola   RISC5Top.Lola
 20180720 - Update compiler: ORP.Mod.txt and ORG.Mod.txt
