@@ -1,3 +1,5 @@
+20180918 - Update Oberon compiler
+  Compiler now consumes considerably less heap space -- ORS.Mod.txt
 20180912 - Update Oberon compiler
   Type tests other than for pointers and record parameters detected as illegal.
   see ORP.TypeTest

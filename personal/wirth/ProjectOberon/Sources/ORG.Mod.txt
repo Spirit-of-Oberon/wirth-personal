@@ -1,5 +1,5 @@
-MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 11.9.2018  Oberon compiler; code generator for RISC*)
-  IMPORT SYSTEM, Files,  ORS, ORB;
+MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 17.9.2018  Oberon compiler; code generator for RISC*)
+  IMPORT SYSTEM, Files, ORS, ORB;
   (*Code generator for Oberon compiler for RISC processor.
      Procedural interface to Parser OSAP; result in array "code".
      Procedure Close writes code-files*)
@@ -249,11 +249,10 @@ MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 11.9.2018  Oberon compiler; code 
   PROCEDURE MakeItem*(VAR x: Item; y: ORB.Object; curlev: LONGINT);
   BEGIN x.mode := y.class; x.type := y.type; x.a := y.val; x.rdo := y.rdo;
     IF y.class = ORB.Par THEN x.b := 0
-    ELSIF y.class = ORB.Typ THEN x.a := y.type.len; x.r := -y.lev
-    ELSIF (y.class = ORB.Const) & (y.type.form = ORB.String) THEN x.b := y.lev  (*len*)
+    ELSIF (y.class = ORB.Const) & (y.type.form = ORB.String) THEN x.b := y.lev  (*len*) ;
     ELSE x.r := y.lev
     END ;
-    IF (y.lev > 0) & (y.lev # curlev) & (y.class # ORB.Const) THEN ORS.Mark("level error, not accessible") END
+    IF (y.lev > 0) & (y.lev # curlev) & (y.class # ORB.Const) THEN ORS.Mark("not accessible ") END
   END MakeItem;
 
   (* Code generation for Selectors, Variables, Constants *)

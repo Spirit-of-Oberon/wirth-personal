@@ -1,4 +1,4 @@
-MODULE ORS; (* NW 19.9.93 / 20.3.2017  Scanner in Oberon-07*)
+MODULE ORS; (* NW 19.9.93 / 15.3.2017  Scanner in Oberon-07*)
   IMPORT SYSTEM, Texts, Oberon;
 
 (* Oberon Scanner does lexical analysis. Input is Oberon-Text, output is
@@ -96,7 +96,7 @@ MODULE ORS; (* NW 19.9.93 / 20.3.2017  Scanner in Oberon-07*)
     VAR i, m, n: INTEGER;
   BEGIN i := 0; Texts.Read(R, ch);
     WHILE ~R.eot & (ch # "$") DO
-      WHILE ~R.eot & (ch <= " ") DO Texts.Read(R, ch) END ;  (*skip*)
+      WHILE ~R.eot  & (ch <= " ") DO Texts.Read(R, ch) END ;  (*skip*)
       IF ("0" <= ch) & (ch <= "9") THEN m := ORD(ch) - 30H
       ELSIF ("A" <= ch) & (ch <= "F") THEN m := ORD(ch) - 37H
       ELSE m := 0; Mark("hexdig expected")
