@@ -1,4 +1,4 @@
-MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 20.3.2017*)
+MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 30.11.2018*)
   IMPORT Files, Fonts;
 
   CONST (*scanner symbol classes*)
@@ -300,7 +300,6 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 20.3.2017*)
     INC(R.off);
     IF R.off = R.ref.len THEN
       IF R.ref.f = TrailerFile THEN R.eot := TRUE END;
-      R.org := R.org + R.off; R.off := 0;
       R.ref := R.ref.next; R.org := R.org + R.off; R.off := 0;
       Files.Set(R.rider, R.ref.f, R.ref.off)
     END
@@ -338,7 +337,7 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 20.3.2017*)
       k: LONGINT;
       x: REAL;
   BEGIN ch := S.nextCh; i := 0;
-    WHILE ~S.eot & (ch <= " ") DO
+    WHILE (ch = " ") OR (ch = TAB) OR (ch = CR) DO
       IF ch = CR THEN INC(S.line) END ;
       Read(S, ch)
     END ;
