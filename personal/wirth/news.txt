@@ -1,3 +1,4 @@
+20181201 - Update Texts.Mod.txt (Read), and ORB.Mod.txt (outType)
 20180918 - Update Oberon compiler
   Compiler now consumes considerably less heap space -- ORS.Mod.txt
 20180912 - Update Oberon compiler
