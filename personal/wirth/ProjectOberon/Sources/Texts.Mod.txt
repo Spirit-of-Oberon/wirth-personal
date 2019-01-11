@@ -1,4 +1,4 @@
-MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 30.11.2018*)
+MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 7.1.2019*)
   IMPORT Files, Fonts;
 
   CONST (*scanner symbol classes*)
@@ -240,7 +240,8 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 30
     END;
     T.len := T.len + B.len; end := pos + B.len;
     B.last := B.header; B.last.next := NIL; B.len := 0;
-    T.changed := TRUE; T.notify(T, insert, pos, end)
+    T.changed := TRUE;
+    IF T.notify # NIL THEN  T.notify(T, insert, pos, end) END
   END Insert;
 
   PROCEDURE Append* (T: Text; B: Buffer);
@@ -261,7 +262,8 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 30
     B.last.next := NIL; B.len := end - beg;
     per.prev := pbr.prev; pbr.prev.next := per;
     T.len := T.len - B.len;
-    T.changed := TRUE; T.notify(T, delete, beg, end)
+    T.changed := TRUE;
+    IF T.notify # NIL THEN T.notify(T, delete, beg, end) END
   END Delete;
 
   PROCEDURE ChangeLooks* (T: Text; beg, end: LONGINT; sel: SET; fnt: Fonts.Font; col, voff: INTEGER);
@@ -277,7 +279,8 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 30
       IF 2 IN sel THEN p.voff := voff END;
       p := p.next
     UNTIL p = pe;
-    T.changed := TRUE; T.notify(T, replace, beg, end)
+    T.changed := TRUE;
+    IF T.notify # NIL THEN T.notify(T, replace, beg, end) END
   END ChangeLooks;
 
   PROCEDURE Attributes*(T: Text; pos: LONGINT; VAR fnt: Fonts.Font; VAR col, voff: INTEGER);

@@ -1,4 +1,4 @@
-MODULE Modules;  (*Link and load on RISC; NW 20.10.2013 / 9.4.2016*)
+MODULE Modules;  (*Link and load on RISC; NW 20.10.2013 / 8.1.2019*)
   IMPORT SYSTEM, Files;
   CONST versionkey = 1X; MT = 12; DescSize = 80;
 
@@ -56,7 +56,7 @@ MODULE Modules;  (*Link and load on RISC; NW 20.10.2013 / 9.4.2016*)
       name1, impname: ModuleName;
       F: Files.File; R: Files.Rider;
       import: ARRAY 16 OF Module;
-  BEGIN mod := root; res := 0; nofimps := 0;
+  BEGIN mod := root; error(0, name); nofimps := 0;
     WHILE (mod # NIL) & (name # mod.name) DO mod := mod.next END ;
     IF mod = NIL THEN (*load*)
       Check(name);
@@ -178,7 +178,7 @@ MODULE Modules;  (*Link and load on RISC; NW 20.10.2013 / 9.4.2016*)
           SYSTEM.PUT(adr, inst); adr := adr - disp*4
         END ;
         body   (*initialize module*)
-      ELSIF res = 3 THEN importing := name;
+      ELSIF res >= 3 THEN importing := name;
         WHILE nofimps > 0 DO DEC(nofimps); DEC(import[nofimps].refcnt) END
       END 
     END ;

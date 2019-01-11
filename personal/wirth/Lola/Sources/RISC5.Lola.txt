@@ -7,32 +7,32 @@ MODULE RISC5(   (*NW 14.8.2018; with floating-point and interrupts*)
   
   CONST StartAdr = 3FF800H'22;
 
-  TYPE Registers := MODULE (IN clk, wr: BIT;
+  TYPE Registers = MODULE (IN clk, wr: BIT;
       IN rno0, rno1, rno2: [4] BIT;
       IN din: WORD;
       OUT dout0, dout1, dout2: WORD) ^;
 
-    Multiplier := MODULE (IN clk, run, u: BIT;
+    Multiplier = MODULE (IN clk, run, u: BIT;
       OUT stall: BIT;
       IN x, y: WORD;
       OUT z: [64] BIT) ^;
 
-    Divider := MODULE (IN clk, run, u: BIT;
+    Divider = MODULE (IN clk, run, u: BIT;
       OUT stall: BIT;
       IN x, y: WORD;
       OUT quot, rem: WORD) ^;
 
-    LeftShifter := MODULE (IN x: WORD; sc: [5] BIT; OUT y: WORD) ^;
+    LeftShifter = MODULE (IN x: WORD; sc: [5] BIT; OUT y: WORD) ^;
 
-    RightShifter := MODULE (IN x: WORD; sc: [5] BIT; md: BIT; OUT y: WORD) ^;
+    RightShifter = MODULE (IN x: WORD; sc: [5] BIT; md: BIT; OUT y: WORD) ^;
 
-    FPAdder := MODULE (IN clk, run, u, v: BIT; OUT stall: BIT;
+    FPAdder = MODULE (IN clk, run, u, v: BIT; OUT stall: BIT;
       IN x, y: WORD; OUT z: WORD) ^;
 
-    FPMultiplier := MODULE (IN clk, run: BIT; OUT  stall: BIT;
+    FPMultiplier = MODULE (IN clk, run: BIT; OUT  stall: BIT;
       IN x, y: WORD; OUT z: WORD) ^;
 
-    FPDivider := MODULE (IN clk, run: BIT; OUT stall: BIT;
+    FPDivider = MODULE (IN clk, run: BIT; OUT stall: BIT;
       IN x, y: WORD; OUT z: WORD) ^;
 
   REG (clk) PC: [22] BIT;  (*program counter*)

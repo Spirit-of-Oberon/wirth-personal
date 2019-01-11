@@ -30,37 +30,37 @@ MODULE RISC5Top(   (*NW 25.7.2018*)
   8  general-purpose I/O data
   9  general-purpose I/O tri-state control *)
 
-TYPE RISC5 := MODULE (
+TYPE RISC5 = MODULE (
     IN clk, rst, irq, stallX: BIT;
       inbus, codebus: WORD;
     OUT adr: [24] BIT;
       rd, wr, ben: BIT;
       outbus: WORD) ^;
 
-  PROM := MODULE (IN clk: BIT;
+  PROM = MODULE (IN clk: BIT;
       IN adr: [9] BIT;
       OUT data: WORD) ^;
 
-  RS232R := MODULE (
+  RS232R = MODULE (
     IN clk, rst, done, RxD, fsel: BIT;
     OUT rdy: BIT; data: BYTE) ^;
 
-  RS232T := MODULE (
+  RS232T = MODULE (
     IN clk, rst, start, fsel: BIT; data: BYTE;
     OUT rdy, TxD: BIT) ^;
 
-  SPI := MODULE (
+  SPI = MODULE (
     IN clk, rst, start, fast: BIT; dataTx: WORD;
     OUT dataRx: WORD; rdy: BIT;
     IN MISO: BIT; 
     OUT MOSI, SCLK: BIT)  ^;
 
-  VID := MODULE (
+  VID = MODULE (
     IN clk, inv: BIT; viddata: WORD;
     OUT req: BIT; vidadr: [18] BIT;
       hsync, vsync: BIT; RGB: [3] BIT) ^;
 
-  MouseP := MODULE ( 
+  MouseP = MODULE ( 
     IN clk, rst: BIT;
     INOUT msclk, msdat: BIT;
     OUT out: [28] BIT) ^;

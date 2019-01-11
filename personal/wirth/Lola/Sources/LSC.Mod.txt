@@ -343,7 +343,7 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 27.8.2018 for RISC (LSCX)*)
   BEGIN
     IF sym = LSS.ident THEN
       obj := NewObj(LSB.const); LSS.Get(sym);
-      IF (sym = LSS.becomes) OR (sym = LSS.eql) THEN LSS.Get(sym) ELSE LSS.Mark(":= ?") END ;
+      IF sym = LSS.eql THEN LSS.Get(sym) ELSE LSS.Mark(":= ?") END ;
       expression(obj.b); obj.type := LSB.integer;
       IF sym = LSS.semicolon THEN LSS.Get(sym) ELSE LSS.Mark("semicolon ?") END
     ELSE LSS.Mark("ident ?")
@@ -376,7 +376,7 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 27.8.2018 for RISC (LSCX)*)
   BEGIN
     IF sym = LSS.ident THEN
       obj := NewObj(LSB.typ); LSS.Get(sym);
-      IF (sym = LSS.becomes) OR (sym = LSS.eql) THEN LSS.Get(sym) ELSE LSS.Mark(":= ?") END ;
+      IF sym = LSS.eql THEN LSS.Get(sym) ELSE LSS.Mark(":= ?") END ;
       IF sym = LSS.module THEN
         LSS.Get(sym); NEW(utyp); Unit(utyp.firstobj); obj.type := utyp; obj.type.typobj := obj
       ELSE Type0(obj.type)

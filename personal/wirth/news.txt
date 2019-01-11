@@ -1,3 +1,8 @@
+20190109 - Syntax change in Lola: Use "=" in (const and type) declarations;
+  use ":=" in statements (like in Oberon)
+  Update LSC.Mod.txt, RISC5.Lola.txt, RISC5a.Lola.txt, RISC5Top.Lola.txt, MouseP.Lola.txt, VID.Lola.txt
+20190108 - Update Texts.Mod.txt (see Insert, Delete, ChangeLooks) and
+  Modules.Mod.txt (Load)
 20181201 - Update Texts.Mod.txt (Read), and ORB.Mod.txt (outType)
 20180918 - Update Oberon compiler
   Compiler now consumes considerably less heap space -- ORS.Mod.txt
