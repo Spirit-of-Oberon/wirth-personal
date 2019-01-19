@@ -1,3 +1,9 @@
+20290118 - Fonts.Mod.txt  cleanup and correction in Fonts.Load
+20190117 - Oberon System updates:
+  Dinsplay.Mod.txt   CopyPattern, now pattern width w <= 32 (not < 32)
+  Modules.Mod.txt   at end of Load:  res >= 3  (not res = 3)
+  Texts.Mod.txt:   IF T.notify # NIL THEN T.notify ...   in
+    Insert, Delete and ChangeLooks
 20190109 - Syntax change in Lola: Use "=" in (const and type) declarations;
   use ":=" in statements (like in Oberon)
   Update LSC.Mod.txt, RISC5.Lola.txt, RISC5a.Lola.txt, RISC5Top.Lola.txt, MouseP.Lola.txt, VID.Lola.txt

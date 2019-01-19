@@ -1,4 +1,4 @@
-MODULE Fonts; (*JG 18.11.90; PDR 8.6.12; NW 25.3.2013*)
+MODULE Fonts; (*JG 18.11.90; PDR 8.6.12; NW 18.1.2019*)
   IMPORT SYSTEM, Files;
 
   CONST FontFileId = 0DBH;
@@ -14,7 +14,9 @@ MODULE Fonts; (*JG 18.11.90; PDR 8.6.12; NW 25.3.2013*)
 
     LargeFontDesc = RECORD (FontDesc) ext: ARRAY 2560 OF BYTE END ;
     LargeFont = POINTER TO LargeFontDesc;
-
+    RunRec = RECORD beg, end: BYTE END ;
+    BoxRec = RECORD dx, x, y, w, h: BYTE END ;
+    
   (* raster sizes: Syntax8 1367, Syntax10 1628, Syntax12 1688, Syntax14 1843, Syntax14b 1983,
       Syntax16 2271, Syntax20 3034, Syntac24 4274, Syntax24b 4302  *)
 
@@ -29,10 +31,6 @@ BEGIN pa := fnt.T[ORD(ch) MOD 80H]; patadr := pa;
 END GetPat;
 
 PROCEDURE This*(name: ARRAY OF CHAR): Font;
-
-  TYPE RunRec = RECORD beg, end: BYTE END ;
-    BoxRec = RECORD dx, x, y, w, h: BYTE END ;
-    
   VAR F: Font; LF: LargeFont;
     f: Files.File; R: Files.Rider;
     NofRuns, NofBoxes: BYTE;
@@ -59,7 +57,6 @@ BEGIN F := root;
         Files.ReadByte(R, b); (*abstraction*)
         Files.ReadByte(R, b); (*family*)
         Files.ReadByte(R, b); (*variant*)
-        NEW(F); F.name := name;
         RdInt16(R, height); RdInt16(R, minX); RdInt16(R, maxX); RdInt16(R, minY); RdInt16(R, maxY); RdInt16(R, NofRuns);
         NofBoxes := 0; k := 0;
         WHILE k # NofRuns DO
@@ -81,7 +78,7 @@ BEGIN F := root;
         a0 := SYSTEM.ADR(F.raster);
         SYSTEM.PUT(a0, 0X); SYSTEM.PUT(a0+1, 0X); SYSTEM.PUT(a0+2, 0X); SYSTEM.PUT(a0+3, 0X); SYSTEM.PUT(a0+4, 0X);
         (*null pattern for characters not in a run*)
-        INC(a0, 2); a := a0+3; j := 0; k := 0; m := 0;
+        INC(a0, 3); a := a0+2; j := 0; k := 0; m := 0;
         WHILE k < NofRuns DO
           WHILE (m < run[k].beg) & (m < 128) DO F.T[m] := a0; INC(m) END;
           WHILE (m < run[k].end) & (m < 128) DO
@@ -105,10 +102,7 @@ BEGIN F := root;
 END This;
 
 PROCEDURE Free*;  (*remove all but first two from font list*)
-  VAR f: Font;
-BEGIN f := root.next;
-  IF f # NIL THEN f := f.next END ;
-  f.next := NIL
+BEGIN IF root.next # NIL THEN root.next.next := NIL END
 END Free;
 
 BEGIN root := NIL; Default := This("Oberon10.Scn.Fnt")
