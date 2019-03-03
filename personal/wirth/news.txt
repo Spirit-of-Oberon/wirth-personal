@@ -1,3 +1,4 @@
+20190301 - ORB.Mod.txt updated, see InType (variable last)
 20290118 - Fonts.Mod.txt  cleanup and correction in Fonts.Load
 20190117 - Oberon System updates:
   Dinsplay.Mod.txt   CopyPattern, now pattern width w <= 32 (not < 32)

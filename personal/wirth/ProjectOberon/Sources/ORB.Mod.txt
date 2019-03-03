@@ -1,4 +1,4 @@
-MODULE ORB;   (*NW 25.6.2014  / 1.12.2018  in Oberon-07*)
+MODULE ORB;   (*NW 25.6.2014  / 1.3.2019  in Oberon-07*)
   IMPORT Files, ORS;
   (*Definition of data types Object and Type, which together form the data structure
     called "symbol table". Contains procedures for creation of Objects, and for search:
@@ -153,7 +153,7 @@ MODULE ORB;   (*NW 25.6.2014  / 1.12.2018  in Oberon-07*)
   PROCEDURE InType(VAR R: Files.Rider; thismod: Object; VAR T: Type);
     VAR key: LONGINT;
       ref, class, form, np, readonly: INTEGER;
-      fld, par, obj, mod: Object;
+      fld, par, obj, mod, last: Object;
       t: Type;
       name, modname: ORS.Ident;
   BEGIN Read(R, ref);
@@ -172,10 +172,12 @@ MODULE ORB;   (*NW 25.6.2014  / 1.12.2018  in Oberon-07*)
         Read(R, class);
         WHILE class # 0 DO  (*fields*)
           NEW(fld); fld.class := class; Files.ReadString(R, fld.name);
+          IF last = NIL THEN t.dsc := fld ELSE last.next := fld END ;
+          last := fld;
           IF fld.name[0] # 0X THEN fld.expo := TRUE; InType(R, thismod, fld.type) ELSE fld.expo := FALSE; fld.type := nilType END ;
-          Files.ReadNum(R, fld.val); fld.next := obj; obj := fld; Read(R, class)
+          Files.ReadNum(R, fld.val); Read(R, class)
         END ;
-        t.dsc := obj
+        IF last = NIL THEN t.dsc := obj ELSE last.next := obj END
       ELSIF form = Proc THEN
         InType(R, thismod, t.base);
         obj := NIL; np := 0; Read(R, class);
