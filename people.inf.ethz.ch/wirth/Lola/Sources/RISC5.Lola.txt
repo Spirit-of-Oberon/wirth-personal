@@ -1,0 +1,201 @@
+MODULE RISC5(   (*NW 14.8.2018; with floating-point and interrupts*)
+  IN clk, rst, irq, stallX: BIT;
+  IN inbus, codebus: WORD;
+  OUT adr: [24] BIT;
+    rd, wr, ben: BIT;
+    outbus: WORD);
+  
+  CONST StartAdr = 3FF800H'22;
+
+  TYPE Registers = MODULE (IN clk, wr: BIT;
+      IN rno0, rno1, rno2: [4] BIT;
+      IN din: WORD;
+      OUT dout0, dout1, dout2: WORD) ^;
+
+    Multiplier = MODULE (IN clk, run, u: BIT;
+      OUT stall: BIT;
+      IN x, y: WORD;
+      OUT z: [64] BIT) ^;
+
+    Divider = MODULE (IN clk, run, u: BIT;
+      OUT stall: BIT;
+      IN x, y: WORD;
+      OUT quot, rem: WORD) ^;
+
+    LeftShifter = MODULE (IN x: WORD; sc: [5] BIT; OUT y: WORD) ^;
+
+    RightShifter = MODULE (IN x: WORD; sc: [5] BIT; md: BIT; OUT y: WORD) ^;
+
+    FPAdder = MODULE (IN clk, run, u, v: BIT; OUT stall: BIT;
+      IN x, y: WORD; OUT z: WORD) ^;
+
+    FPMultiplier = MODULE (IN clk, run: BIT; OUT  stall: BIT;
+      IN x, y: WORD; OUT z: WORD) ^;
+
+    FPDivider = MODULE (IN clk, run: BIT; OUT stall: BIT;
+      IN x, y: WORD; OUT z: WORD) ^;
+
+  REG (clk) PC: [22] BIT;  (*program counter*)
+    IR: WORD;   (*instruction register*)
+    N, Z, C, OV: BIT;   (*condition flags*)
+    stallL1: BIT;
+    H: WORD;  (*auxiliary register*)
+    irq1, intEnb, intPnd, intMd: BIT;
+    SPC: [26] BIT;  (*saved PC on interrupt*)
+
+  VAR regs: Registers;
+    mulUnit: Multiplier;
+    divUnit: Divider;
+    LshUnit: LeftShifter;
+    RshUnit: RightShifter;
+    faddUnit: FPAdder;
+    fmulUnit: FPMultiplier;
+    fdivUnit: FPDivider;
+
+    pcmux, pcmux0, nxpc: [22] BIT;
+    cond, S: BIT;
+    sa, sb, sc: BIT;
+
+    p, q, u, v: BIT;   (*instruction fields*)
+    op, ira, ira0, irb, irc: [4] BIT;
+    cc: [3] BIT;
+    imm: [16] BIT;
+    off: [20] BIT;
+    disp: [22] BIT;
+
+    regwr: BIT;
+    stall, stallL0, stallM, stallD, stallFA, stallFM, stallFD: BIT;
+    intAck, nn, zz, cx, vv: BIT;
+
+    A, B, C0, C1, aluRes, regmux, inbus1: WORD;
+    lshout, rshout: WORD;  (*shifting*)
+    quotient, remainder: WORD;
+    product: [64] BIT;
+    fsum, fprod, fquot: WORD;
+
+    Add, Sub, Mul, Div: BIT;
+    Fadd, Fsub, Fmul, Fdiv: BIT; 
+    Ldr, Str, Br, RTI: BIT;
+
+BEGIN 
+  regs (clk, regwr, ira0, irb, irc, regmux, A, B, C0);
+  mulUnit (clk, Mul, ~u, stallM, B, C1, product);
+  divUnit (clk, Div, ~u, stallD, B, C1, quotient, remainder);
+  LshUnit (B, C1[4:0], lshout);
+  RshUnit (B, C1[4:0], IR.16, rshout);
+  faddUnit (clk, Fadd|Fsub, u, v, stallFA, B, {Fsub^C0.31, C0[30:0]}, fsum);
+  fmulUnit (clk, Fmul, stallFM, B, C0, fprod);
+  fdivUnit (clk, Fdiv, stallFD, B, C0, fquot);
+
+  p := IR.31;  (*instruction fields*)
+  q := IR.30;
+  u := IR.29;
+  v := IR.28;
+  cc:= IR[26:24];
+  ira := IR[27:24];
+  irb := IR[23:20];
+  op := IR[19:16];
+  irc := IR[3:0];
+  imm := IR[15:0];  (*reg instr*)
+  off := IR[19:0];    (*mem instr*)
+  disp := IR[21:0];  (*branch instr*)
+
+  Add := ~p & (op = 8);
+  Sub := ~p & (op = 9);
+  Mul := ~p & (op = 10);
+  Div := ~p & (op = 11);
+  Fadd := ~p & (op = 12);
+  Fsub := ~p & (op = 13);
+  Fmul := ~p & (op = 14);
+  Fdiv := ~p & (op = 15);
+  Ldr := p & ~q & ~u;
+  Str := p & ~q & u;
+  Br := p & q;
+  RTI := Br & ~u & ~v & IR[4];
+
+  (*ALU*)
+  C1 := q -> {v!16, imm} : C0 ;
+  ira0 := Br -> 15'4 : ira;
+  adr := stallL0 -> B[23:0] + {off.19 ! 4, off} : {pcmux, 0'2};
+  rd := Ldr & ~stallX & ~stallL1;
+  wr := Str & ~stallX & ~stallL1;
+  ben := p & ~q & v & ~stallX & ~stallL1; (*byte enable*)
+
+  aluRes :=
+    ~op.3 ->
+      (~op.2 ->
+        (~op.1 ->
+          (~op.0 ->  (*Mov*)
+            (q -> 
+              (~u ->  {v!16 , imm} : {imm, 0'16}) :
+              (~u -> C0 : (~v -> H : {N, Z, C, OV, 0'20, 5BH'8}))) :
+            lshout ):   (*Lsl*)
+          rshout) :   (*Asr, Ror*)
+        (~op.1 -> 
+          (~op.0 -> B & C1 : B & ~C1) :   (*And, Ann*)
+          (~op.0 -> B | C1 : B ^ C1)) ):   (*Ior, Xor*)
+      (~op.2 ->
+        (~op.1 ->
+          (~op.0 -> B + C1 + {0'31, (u&C)} : B - C1 - {0'31, (u&C)}) :   (*Add, Sub*)
+          (~op.0 -> product[31:0] : quotient)) :       (*Mul, Div*)
+        (~op.1 ->
+          fsum :     (*Fad, Fsb*)
+          (~op.0 -> fprod : fquot))) ;  (*Fml, Fdv*)
+
+  regwr := ~p & ~stall | (Ldr & ~stallX & ~stallL1) | (Br & cond & v & ~stallX);
+  regmux := Ldr -> inbus1 : (Br  & v) -> {0'8, nxpc, 0'2} : aluRes ;
+  inbus1 := ~ben -> inbus :
+    {0'24, (adr[1] -> (adr[0] -> inbus[31:24] : inbus[23:16]) :
+            (adr[0] -> inbus[15:8] : inbus[7:0]))};
+  outbus := ~ben -> A :
+    adr[1] -> (adr[0] -> {A[7:0], 0'24} : {0'8, A[7:0], 0'16}) :
+            (adr[0] -> {0'16, A[7:0], 0'8} : {0'24, A[7:0]});
+
+  (*control unit*)
+  S := N ^ OV;
+  nxpc := PC + 1;
+  cond := IR.27 ^ (
+      (cc = 0) & N  |  (*MI, PL*)
+      (cc = 1) & Z  |  (*EQ, NE*)
+      (cc = 2) & C  |  (*CS, CC*)
+      (cc = 3) & OV  |  (*VS, VC*)
+      (cc = 4) & (C|Z)  |  (*LS, HI*)
+      (cc = 5) & S  |  (*LT, GE*)
+      (cc = 6) & (S|Z) | (*LE, GT*)
+      (cc = 7));
+
+  intAck := intPnd & intEnb & ~intMd & ~stall;
+  pcmux0 := stall -> PC :
+    RTI-> SPC[21:0] :
+    (Br & cond) -> (u -> disp + nxpc : C0[23:2]) : nxpc;
+  pcmux := ~rst -> StartAdr : intAck -> 1 : pcmux0;
+
+  sa := aluRes.31;
+  sb := B.31;
+  sc := C1.31;
+
+  nn := RTI -> SPC[25] : regwr -> regmux.31 : N;
+  zz := RTI -> SPC[24] :  regwr -> (regmux = 0) : Z;
+  cx := RTI -> SPC[23] :
+    Add -> (sb&sc) | (~sa&~sb&sc) | (~sa&sb&~sc&sa) :
+    Sub -> (~sb&sc) | (sa&~sb&~sc) | (sa&sb&sc) : C;
+  vv := RTI -> SPC[22] :
+    Add -> (sa&~sb&~sc) | (~sa&sb&sc) :
+    Sub -> (sa&~sb&sc) | (~sa&sb&~sc) : OV;
+
+  stall := stallL0 | stallM | stallD | stallFA | stallFM | stallFD | stallX;
+  stallL0 := (Ldr | Str) & ~stallL1;
+  
+  (*assignments to registers*)
+  PC := pcmux;
+  IR := stall -> IR : codebus;
+  stallL1 := stallX -> stallL1 : stallL0;
+  N := nn; Z := zz; C := cx; OV := vv;
+  H := Mul -> product[63:32] : Div -> remainder : H;
+
+  irq1 := irq;   (*edge detector*)
+  intPnd := rst & ~intAck & ((~irq1 & irq) | intPnd);
+  intMd := rst & ~RTI & (intAck | intMd);
+  intEnb := ~rst -> 0 : (Br & ~u & ~v & IR[5]) -> IR[0] : intEnb;
+  SPC := intAck -> {nn, zz, cx, vv, pcmux0} : SPC
+END RISC5.

@@ -1,0 +1,20 @@
+MODULE Divider(   (*NW 14.9.2015*)
+  IN clk, run, u: BIT;
+  OUT stall: BIT;
+  IN x, y: WORD;  (*y > 0*)
+  OUT quot, rem: WORD);
+  
+  REG (clk) S: [6] BIT;
+    RQ: [64] BIT;
+  VAR sign: BIT;
+    x0, w0, w1: WORD;
+BEGIN stall := run & (S # 33);
+  sign := x.31 & u;
+  x0 := sign -> -x : x;
+  w0 := RQ[62:31];
+  w1 := w0 - y;
+  S := run -> S+1 : 0;
+  quot  := ~sign -> RQ[31:0] : (RQ[63:32] = 0) -> -RQ[31:0] : -RQ[31:0] - 1;
+  rem := ~sign -> RQ[63:32] : (RQ[63:32] = 0) -> 0 :  y - RQ[63:32];
+  RQ := (S = 0) -> {0'32, x0} : {w1.31 -> w0 : w1,  RQ[30:0], ~w1[31]}
+END Divider.

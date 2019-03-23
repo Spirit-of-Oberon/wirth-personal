@@ -1,0 +1,18 @@
+MODULE Multiplier (     (*NW 13.9.2014*)
+  IN clk, run, u: BIT;
+  OUT stall: BIT;
+  IN x, y: WORD;   (*32 bit*)
+  OUT z: [64] BIT);
+
+  REG (clk) S: [6] BIT;   (*state*)
+    P: [64] BIT;   (*product*)
+  VAR w0: WORD;
+    w1: [33] BIT;
+
+BEGIN stall := run & (S # 33);
+  w0 := P.0 -> y : 0;
+  w1 := (S =32) & u -> {P.63, P[63:32]} - {w0.31, w0} : {P.63, P[63:32]} + {w0.31, w0};
+  S := run -> S+1 : 0;
+  P := (S = 0) -> {0'32, x} : {w1[32:0], P[31:1]};
+  z := P
+END Multiplier.

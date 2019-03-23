@@ -1,0 +1,373 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.04 [en] (Win95; I) [Netscape]">
+   <TITLE>Summary of projects by N. Wirth, 1962 - 1999</TITLE>
+</HEAD>
+<BODY>
+
+<H1>
+Summary of projects by N. Wirth, 1962 - 1999</H1>
+
+<H3>
+Euler, 1962-1965</H3>
+Efforts to identify and combine the essential and fundamental concepts
+of programming languages, in particualr of ALGOL 60, led to Wirth's dissertation
+under the guidance of Prof. H. D. Huskey at the University of California
+at Berkeley, and to the definition of the language Euler. The language
+was implemented on the IBM 704 computer. After publication the project
+was continued at Stanford University and resulted in an improved implementation
+on the Burroughs B5000 computer. This work led the foundation for the method
+of the microprogrammed, stack-oriented interpreter, first tested on an
+IBM 360/30 computer. This method became widespread much later and was to
+play a key role in the implementation of high-level languages on microcomputers.
+Another important aspect of this research was the development of efficient,
+general parsing methods, and the systematic coupling of semantic interpretation
+with syntactic analysis. The so-called precedence grammars originated in
+the context of this project.
+<H3>
+ALGOL-W, 1964-1967</H3>
+The work on Euler attracted the interest of the IFIP Working Group 2.1.
+This group had the task of promulgating and further enhancing ALGOL 60.
+Three proposals for a successor language were submitted in 1965. In the
+decisive meeting at Warsaw in the fall of 1966, the proposal of A. van
+Wijngaarden was elected to be further pursued. In 1970, it eventually became
+ratified by IFIP as ALGOL 68. Whereas it represented a radically new language,
+Wirth's proposal had been less ambitious and based on the idea to extend
+ALGOL 60. A compiler was implemented for his (subsequently modified) proposal,
+and it later became used (under the name Algol W) at many universities
+operating IBM 360 computers. It contributed significantly to uphold the
+ideas of ALGOL 60.
+
+<P>Since Algol-W was implemented on one of the first IBM 360 computers,
+and because only an assembler and a Fortran compiler were available, which
+both were deemed as unsuitable, Wirth conveived a so-called system implementation
+language. It was supposed to facilitate and speed up the Algol effort,
+and at the same time it was to be simple enough to avoid a large effort
+for its own implementation. These goals were fully achieved, and the resulting
+language PL360 unexpectedly became used at many other installations too.
+It was the prototype for other, similar developments for other computer
+architectures.
+<H3>
+Pascal, 1968-1972</H3>
+Freed from the constraining influence of a working group's consensus, Wirth
+developped the language Pascal in Zurich. The basis was Algol-W and the
+desire to have a language that would satisfy the requirements of system
+design (compilers, operating systems, etc.). Also, there was to be a basis
+of clear concepts and structures, definable axiomatically and independently
+of any particular computer, as the language was to be suitable also for
+teaching in an academic environment. Pascal has satisfied these requirements;
+it is today one of the most widely used languages in computer science education.
+The first Pascal compiler was designed in Zurich for the CDC 6000 computer
+family, and it became operational in 1970. Already in 1972 Pascal was used
+in introductory programming courses.
+<H3>
+Venus, 1970-71</H3>
+In 1970, the Federal Institute of Technology (ETH) acquired a large-scale
+computer system. In its selection, priority was given to the efficient
+processing of numerical problems (number crunching). Whereas the concept
+of time-sharing spread everywhere else, the chosen CDC Cyber system's software
+was ill-suited for this mode of operation. Under the direction of Wirth
+and with the cooperation of the ETH Computation Center, the time sharing
+system Venus emerged in 1970. It met the stringent requirement of not infringing
+on the effectiveness of the batch processed number crunching tasks. Wirth
+programmed the Venus text editor; the system, although by now obsolescent,
+is still in daily use at ETH. It made it possible to introduce the concept
+of time-sharing to ETH, without which a modern computation center would
+be unthinkable.
+<H3>
+Pascal-P, 1972-74</H3>
+It had always been a major goal in the development of Pascal to demonstrate
+that structured languages need not be inferior to the predominant Fortran,
+if sufficient attention and care was paid to their implementation. But
+it soon became clear that industry had no interest in undertaking this
+demonstrations, although such engineering projects typically should fall
+into industry's domain. A second Pascal compiler effort was therefore launched
+at ETH. The new compiler produced code that was as good as that generated
+by commercially developped Fortran compilers. Furthermore, this project
+served as a test for the method of stepwise program refinement propagated
+by Wirth. A fringe benefit was the welcome capability to satisfy requests
+to help implement Pascal on other computers, as these requests from other
+universities became more frequent. The solution lay in replacing the new
+compiler's code generator by one producing code for a hypothetical architecture
+that was easily implemented on other machines in the form of a hand-coded
+interpreter. This architecture, stack-based, became known as the P-machine,
+its instruction set as P-code. (P for portable). It bacame the basis of
+the large majority of Pascal implementations which first appeared on large-scale
+computers (IBM, Univac, DEC, Siemens). But the genuine break-through occurred
+after microprocessors became widely available and it became clear that
+Pascal-P implementation was feasible for them (UCSD- Pascal).
+<H3>
+Modula, 1973-76</H3>
+Programming languages are mathematical theorems. They represent a methodology
+of programming, of abstract machine construction. In 1973, Wirth started
+a project to investigate the basic concepts of designing systems with concurrent
+processes, i.e. of multi- programming. The emerging design rules (guidelines)
+inevitably led to the formulation of language constructs expressing the
+generation and synchronization of concurrent activities. Their embedding
+in an environment of a minimal support language led to Modula. Implementation
+was conducted on a PDP-11 computer. A first successful application was
+the system Hexapus that allowed to connect minicomputers in laboratories
+with the Computation Center and is still in popular use today.
+<H3>
+Lilith, 1977-1981</H3>
+During a sabbatical year spent at the Xerox Palo Alto Research Center,
+Wirth was confrontred with an entirely new concept in computer usage: the
+personal work station. Without the least doubt, the personal work station
+was superior to the conventional computation center almost wherever computers
+were used: for the computer scientist, the system designer, in the office,
+the laboratory, and in particular also in the class room. Unquestionably,
+the advances in microelectronics would make it possible to manufacture
+personal work stations economically within the next five years. Whoever
+had a work station at his disposal would be ahead in the development of
+software suitable to this new mode of operation. In 1977, Wirth initiated
+a research project to develop a powerful work station: Lilith. A primary
+objective was to combine the design of hardware and software. Thereby the
+project expanded into an integrated design effort for hardware, microcode,
+operating system, compiler, and elementary application programs. The new
+mode of highly interactive usage required new concepts concerning the operating
+system and editors.
+
+<P>Inspite of the enormous task, the goal was successfully reached within
+three years thanks to the intensive and dedicated work of up to seven assistants.
+Today, 60 Lilith computers are in daily use at the Institute at ETH, and
+about 250 more in universities and in industry (e.g. Burroughs, Floating-Point
+Systems, TRW, Tektronix, Signetics) in the USA. Lilith demonstrated that
+a workstation can be a powerful, convenient, and even economical tool not
+only in the office, but in applications which so far had been the exclusive
+domain of large scale computers, such as computer-aided design.
+
+<P>Apart from the operating system and the compiler, interactive editors
+belong to the basic software of a system intended for program development.
+Editors were to be designed in entirely new ways; after all, the challenge
+lay in making optimal use of the new facilities offered by the hardware,
+the high-resolution, bit-mapped screen, and the mouse as a position input
+device. Both the prototype text editor Dina and the editor Sil for line
+drawings were programmed by Wirth himself. Dina was the ancestor of the
+later document preparation systems Andra and Lara which allow arbitrary
+text layout and the use of many fonts, and Sil is heavily used to draw
+all kinds of diagrams, in particular circuit diagrams.
+
+<P>Perhaps the most significant contribution of the Lilith project was
+that it made it possible to conceive solutions that would not have been
+thinkable with commercially available products. The first 10 Liliths were
+installed in 1980, five years before similar systems were marketed.
+<H3>
+Modula-2, 1977-1980</H3>
+Among other things, it was the conscious restriction to use a single programming
+language only that made the completion of the Lilith project possible in
+such a short time. Wirth decided to design a revision of Pascal, sacrificing
+upward compatibility in return for the advantage of avoiding Pascal's deficiencies:
+Modula-2. The principal new concepts were:
+<UL>
+<LI>
+The module as a unit of program which can be compiled separately.</LI>
+
+<LI>
+The coroutine as the basic buiding block for systems involving concurrent
+processes.</LI>
+
+<LI>
+An encapsulated set of types and procedures which allow access to machine-specific
+objects.</LI>
+</UL>
+The first Modula-2 compiler was completed at ETH in 1979. It was implemented
+on a PDP-11 computer and then ported onto Lilith. The interest in Modula-2
+soon grew, because it offered considerable advantages over Pascal, particularly
+in the construction of large systems developped by teams. The compiler
+was distributed to several hundred universities and places in industry,
+and soon there were companies offering their own developments (Logitech,
+Volition Systems, Tartan Laboratories). The advantages of Modula-2 were
+above all paying off in the development of the Lilith software itself.
+The compiler, the entire operating system, the editors, and all utilities
+were programmed exclusively in Modula-2. This demonstrated that the confinement
+to a single language is not only possible but even advantageous.
+<H3>
+Computer-Network, 1980-82</H3>
+The personal workstation gains enormously in value, if it is connected
+with other stations via a network. Impersonal stations, so-called servers,
+are of great importance, such as printers and central file stores. Under
+the direction of Wirth, a network interface was developped for Lilith,
+based on the principle of Ethernet. This 3 Mbit/s computer network was
+the first of its kind in Switzerland.
+<H3>
+Laser Printer, 1982</H3>
+Although Wirth had experienced the impressive versatility and the undisputable
+advantages of laser printers at Xerox in 1976, he had to wait until 1982
+to obtain such a device at an affordable price. He acquired the first laser
+printer of this kind in Europe (Canon LBP-10), designed the hardware and
+software interface for Lilith, and thereby showed that Lilith was an ideal
+real-time computer to drive a laser printer's video signal, powerful enough
+to generate the 6 million raster dots of a printed page while the page
+is moving past the printer's drum. Under pressure to publish a book on
+Modula-2, he also programmed the document formatter system Skylla/Zeus,
+with which it was possible to produce the camera-ready original of the
+book.
+<H3>
+Modula-2 Compiler, 1983-85</H3>
+Over the years it became evident that the available Modula-2 compilers,
+including the one from ETH, were less than optimal, and through mediocre
+performance sometimes deterred users to take full advantage of Modula-2.
+Wirth decided to develop a new compiler from scratch by himself. It is
+based on the simple principle of one-pass compilation, whose application
+had become possible because of the large memories of modern computers,
+and which eliminates most of the slow accesses to secondary storage devices.
+The new compiler is remarkable because of its clear structure, its compactness
+and its efficiency. The program is about 5000 lines long, compared to 10'000
+of its predecessor and 100'000 of comparable Ada compilers, and it compiles
+itself in less than 2 minutes, compared with half an hour required by its
+predecessor. These advantages are not only visible in the compiler's use,
+but they demonstrate that powerful modern languages do not necessarily
+require giant, complex translators, as is so often claimed.
+<H3>
+Ceres 1 - 3, 1984-1990</H3>
+Five years after Lilith, a second project was started to develop a new
+workstation. Not the design of a new processor architecture stood in the
+foreground, but rather the acquisition of know-how in the structure and
+use of modern hardware technology, also in conjunction with software development.
+Hence, the computer was to be based on a commercially available microprocessor.
+The choice fell to the NS32000 family of National Semiconductor (then still
+called the 16000). After the completion of a prototype with the 32016 processor,
+both Wirth and codesigner H. Eberle felt that a new design should be based
+on a 32-bit scheme. The second prototype was therefore built around the
+NS32032 part, the first genuine 32-bit processor on the market. The memory
+consisted of 64 256K-DRAM and 32 novel, dual-port 64K-VRAM chips, the latter
+implementing the frame buffer for the 1024x800 bit-mapped display with
+minimal bus interference.
+
+<P>In early 1986 33 Ceres-1 computers were built by Hardmeier &amp; Co.
+in Winterthur, and subsequently tested in our Institute, proving that our
+goals for robustness and cost effectiveness were well reached. They were
+immediately put into daily use for research and teaching. A second series
+was built in the following year.
+
+<P>Progress in semiconductor technology had accelerated to a degree that
+after only a few years much more powerful machines could be built, even
+with reduced cost. In 1987-88, Ceres-2 was developed, mostly by B. Heeb
+under Wirth's supervision. It was based on the NS32532 processor, delivering
+a sevenfold increase in power over Ceres-1. The use of 1M-bit DRAMs facilitated
+the enlargement of memeory to 4 or 8 MBytes. 20 Ceres-2 machines were built
+by the same company in 1988.
+
+<P>The third model, Ceres-3, was designed in 1989 with the purpose of providing
+a low-cost workstation for student laboratories. The ratio of power vs.
+cost was of foremost concern. The station, built around the NS32GX32 processor,
+also had to operate without any moving parts in order to minimize maintenance
+cost and noise. No fan was to be used for cooling. The goals were met,
+and in 1990 100 Ceres-3 were built, all of them by a single engineer in
+four months. Since then, the machines are in use in offices and mostly
+student laboratories, connected by a network and served by a Ceres-1 server
+machine.
+<H3>
+Oberon Language and System, 1986-1990</H3>
+A sabbatical year at the Xerox Palo Alto Research Center (1984-85) brought
+Wirth into closer touch with the Cedar Operating System, developed in the
+preceding years at PARC. This was perhaps the first system truly tuned
+to the needs of personal workstations, and freed from the framework inherited
+from central computers with a batch processing mode. In daily use, however,
+Cedar showed all too clearly the symptoms of large software developed by
+large groups of people: it was bulky and unreliable. It had already become
+so complex, and its structure had become so intertwined that it was most
+difficult, if not impossible, to understand it. Wirth decided to undertake
+the development of a new system, based on concepts suggested by Cedar,
+but with the firm goal to keep its size such that it could be well understood
+as a whole, and could be explained in detail in the literature and in courses.
+Together with J. Gutknecht he worked on the conception and the detailed
+programming for the following 3-4 years, after which the basic, but easily
+extensible system was operational.
+
+<P>Although it was planned to use Modula-2 to implement the Oberon System,
+it soon became evident that a fundamental facility needed for extensibility
+was lacking: type extension. It was decided to also discard various facilities
+of lesser importance of Modula-2, and to construct a new, derived language
+and its compiler. Being an integral part of the project, the language also
+obtained the name Oberon.
+
+<P>Language and System soon became the standard tools in the Institute
+for software development, and in particular the development of system extensions.
+Wirth himself developed and programmed a graphics editor and software for
+the network connecting the Ceres workstations. A particular challenge was
+the design of a server station for printing, file distribution, and electronic
+mail, all together under the constraint of Oberon's single process property.
+Using a simple, clear concept proved to be a large benefit; the server
+operates without failure continuously for years.
+<H3>
+Hardware Design with Field Programmable Gate Arrays (FPGAs), 1990-1999</H3>
+Similarity and difference between hardware and software design always had
+intreagued Wirth as a topic. With the emergence of programmable logic devices,
+the gap between the two fields narrowed. A project to familiarize a team
+with the new possibilities was established, and research in design methods
+using the new devices was started. It led to a set of design tools, including
+a specification language (Debora, B. Heeb), its compiler with several "back
+ends" for printed circuits boards, PLDs, and FPGAs. The usefulness of these
+tools was demonstrated by applying them in the construction of a workstation
+(Chamaeleon, also Ceres-3). The construction process starting from a textual
+specification and ending with a board layout and PLD programs was automated,
+and it required almost no manual intervention.
+
+<P>Wirth realized early, that FPGAs would be particularly useful as a field
+for experimentation in learning digital circuit design, replacing expensive,
+pluggable circuit modules by programmable cells. He equipped 25 Ceres-3
+workstations in a student laboratory with an FPGA and uses them intensively
+in a digital design class. Along with a new project in tool design went
+the formulation of his language Lola, specifically tailored to the need
+of teaching in a systematic manner, dispensing with the myriads of side-issues
+inherent in commercial HDLs. The tool set consists of a compiler converting
+the program (circuit) text into an abstract data structure suitable for
+further processing, an editor for constructing circuits implemented by
+the FPGA, i.e. for generating a layout, and a checker comparing the specification
+in Lola with the layout.
+<H3>
+Automatic Control of Model Helicopter</H3>
+In 1995 Wirth joined a project undertaken at the Institute of Automatic
+Control and Measurement. The goal was the development of a system to allow
+a model helicopter to fly autonomously a preprogrammed path. Wirth designed
+an on-board computer system with a Strong-ARM processor at its core. Aside
+from the hardware, he also programmed various software tools, including
+an Oberon subset compiler with additional features for real-time programming.
+The computer board was built by I. Noack.
+
+<P>The resulting computer system, called Olga, made use of experience with
+programmable gate arrays, and used the novel Xilinx-Algotronix 6200 fine-grained
+FPGA for the generation and sensing of pulse-width modulated signals to
+control the servos. Furthermore, the computer was connected to a compass,
+a global positioning system (GPS), and a data link via several standard
+RS-232 interfaces. This system resulted in a drastic reduction of weight
+and power consumption, and an increase in computing performance compared
+to the one used before, inspite of the fact that floating-point arithmetic
+was to be programmed based on integer arithmetic.
+
+<P>The helicopter carrying Olga weighs about 15 kg and is powered by a
+35ccm engine. Wirth pushed for a second project based on a downsized helicopter
+model with a weight of less than 5 kg and a conventional 10ccm engine.
+This was realized with a considerably smaller computer board, but the same
+Strong-ARM core and software base. The large FPGA was replaced by several
+small PLDs. This project, Horla, was confined to the more modest goal of
+using the computer only to stabilize the inherently unstable craft, while
+position, speed and direction would remain under remote control by the
+pilot.
+
+<P>Both projects collected in a remarkable way the various techniques and
+tools on which Wirth had worked during the past decade: Compiler, operating
+system, programmable devices (FPGA, PLD) and their design tools including
+the language Lola, and circuit design in general. Both projects were successful,
+although only after several years of effort - and patience.
+<H3>
+Teaching</H3>
+Wirth became professor at ETH in 1968. In 1970, he and his colleague C.A.
+Zehnder presented a proposal for the introduction of a curriculum in computer
+science. A second attempt to establish the subject as an academic discipline
+failed again in 1974. A new Department was finally established in 1981,
+and Wirth became its head from 1982 to 1984, and again 1988-1990.
+
+<P>Meanwhile, the computer science courses continued to be directed primarily
+towards the students of mathematics and electrical engineering. Wirth had
+a strong influence on the contents of the introductory courses and gave
+form to many of the advanced courses. Several times his lecture material
+condensed into books which became translated into many languages: Systematic
+Programming (1972), Algorithms and Data Structures (1975), Compiler Construction
+(1976). Also his books Pascal - User Manual and Report (1974), Programming
+in Modula-2 (1982), Programming in Oberon (1992), and Project Oberon (1993)
+are widely read.
+</BODY>
+</HTML>

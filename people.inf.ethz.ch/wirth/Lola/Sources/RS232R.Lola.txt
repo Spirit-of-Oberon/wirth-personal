@@ -1,0 +1,28 @@
+MODULE RS232R (    (*NW 10.8.2015*)
+  IN clk, rst, done, RxD, fsel: BIT;
+  OUT rdy: BIT; data: BYTE);
+  REG (clk) run, stat: BIT;
+    Q0, Q1: BIT;   (*synchronizer and edge detector*)
+    tick: [12] BIT;
+    bitcnt: [4] BIT;
+    shreg: BYTE;
+  VAR endtick, midtick, endbit: BIT;
+    limit: [12] BIT;
+BEGIN
+  limit := fsel -> 217 : 1302;
+  endtick := tick = limit;
+  midtick := tick = {0'1, limit[11:1]};   (*limit/2*)
+  endbit := bitcnt = 8;
+  data := shreg;
+  rdy := stat;
+
+  Q0 := RxD; Q1 := Q0;
+  run := (Q1 & ~Q0) | ~(~rst | endtick & endbit) & run;
+  tick := (run & ~endtick) -> tick + 1 : 0;
+  bitcnt := (endtick & ~endbit) -> bitcnt + 1 :
+    (endtick & endbit) -> 0 : bitcnt;
+  shreg := midtick -> {Q1, shreg[7:1]} : shreg;
+  stat := (endtick & endbit) | ~(~rst | done) & stat
+END RS232R.
+
+  

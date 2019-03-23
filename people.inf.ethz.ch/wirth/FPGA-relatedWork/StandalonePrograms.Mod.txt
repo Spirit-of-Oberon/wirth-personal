@@ -1,0 +1,29 @@
+(* ORP.Compile @  ORTool.DecObj Counter.rsc
+  ORX.WriteFile Counter.rsc 2048 "D:/Verilog/RISC/prom.mem"~
+  ORX.WriteFile Shifter.rsc 2048 "D:/Verilog/RISC/prom.mem"~ *)
+
+MODULE* Counter;
+  VAR x, y, z: INTEGER;
+BEGIN LED(1); z := 0;
+  REPEAT LED(z); x := 1000;
+     REPEAT y := 1000;
+       REPEAT y := y-1 UNTIL y = 0;
+       x := x-1
+     UNTIL x = 0;
+     z := z+1
+   UNTIL FALSE
+END Counter.
+
+MODULE* Shifter;
+  VAR x, y, z, d: INTEGER;
+BEGIN  z := 1; d := 1;
+  REPEAT LED(z); x := 1000;
+     REPEAT y := 1000;
+       REPEAT y := y-1 UNTIL y = 0;
+       x := x-1
+     UNTIL x = 0;
+     IF z = 128 THEN d := -1 ELSIF z = 1 THEN d := 1 END ;
+     IF d = 1 THEN z := LSL(z, 1) ELSE z := ASR(z, 1) END
+   UNTIL FALSE
+END Shifter.
+

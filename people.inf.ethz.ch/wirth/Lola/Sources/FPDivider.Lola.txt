@@ -1,0 +1,38 @@
+MODULE FPDivider(   (*NW 28.10.2016*)
+  IN clk, run: BIT; x, y: WORD;
+  OUT stall: BIT; z: WORD);
+
+  REG (clk) S: [5] BIT;   (*state*)
+    R: [24] BIT;   (*remainder*)
+    Q: [26] BIT;   (*quotient*)
+
+  VAR sign: BIT;
+    xe, ye: [8] BIT;
+    e0, e1: [9] BIT;
+    r0,  r1, d: [25] BIT;
+    q0: [26] BIT;
+    z0, z1: [25] BIT;
+
+BEGIN
+  sign := x.31 ^ y.31;   (*xor*)
+  xe := x[30:23]; ye := y[30:23];
+  e0 := {0'1, xe} - {0'1, ye};
+  e1 := e0 + 126 + {0'8, Q.25};
+  stall := run & (S # 26);
+
+  r0 := (S = 0) -> {1'2, x[22:0]} : {R, 0'1};
+  r1 := d.24 -> 0 : d;
+  d := r0 - {1'2, y[22:0]};
+  q0 := (S = 0) -> 0 : Q;
+
+  z0 := Q.25 -> Q[25:1] : Q[24:0];  (* normalize*)
+  z1 := z0 + 1;   (*round*)
+  z := (xe = 0) -> 0 :
+    (ye = 0) -> {sign, 0FFH'8, 0'23} :  (*divide by 0*)
+    ~e1.8 -> {sign, e1[7:0], z1[23:1]} :
+    ~e1.7 -> {sign, 0FFH'8, z0[23:1]} : 0;   (*overflow*)
+
+  R := r1[23:0];
+  Q := {q0[24:0], ~d.24};
+  S := run -> S+1 : 0
+END FPDivider.
