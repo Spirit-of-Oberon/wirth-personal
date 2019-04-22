@@ -1,4 +1,4 @@
-MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 27.8.2018 for RISC (LSCX)*)
+MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 11.4.2019 for RISC (LSCX)*)
   IMPORT Texts, Oberon, LSB, LSS;
   
   VAR sym: INTEGER;
@@ -455,7 +455,6 @@ MODULE LSC;  (*Lola System Compiler, NW 8.1.95 / 27.8.2018 for RISC (LSCX)*)
           IF sym = LSS.lparen THEN (*clock*)
             LSS.Get(sym); expression(clock);
             IF clock.type # LSB.bitType THEN LSS.Mark("clock must be bitType") END ;
-            IF (clock IS LSB.Object) & (clock(LSB.Object).name = "clk") THEN kind := 1; clock := NIL END ;
             IF sym = LSS.rparen THEN LSS.Get(sym) ELSE LSS.Mark("rparen ?") END
           ELSE LSS.Mark("lparen expected"); clock := undef
           END ;
