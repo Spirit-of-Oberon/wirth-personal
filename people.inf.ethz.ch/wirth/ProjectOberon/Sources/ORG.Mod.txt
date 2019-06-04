@@ -1,4 +1,4 @@
-MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 17.9.2018  Oberon compiler; code generator for RISC*)
+MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 31.5.2019  Oberon compiler; code generator for RISC*)
   IMPORT SYSTEM, Files, ORS, ORB;
   (*Code generator for Oberon compiler for RISC processor.
      Procedural interface to Parser OSAP; result in array "code".
@@ -355,20 +355,25 @@ MODULE ORG; (* N.Wirth, 16.4.2016 / 4.4.2017 / 17.9.2018  Oberon compiler; code 
 
   PROCEDURE TypeTest*(VAR x: Item; T: ORB.Type; varpar, isguard: BOOLEAN);
     VAR pc0: LONGINT;
-  BEGIN (*fetch tag into RH*)
-    IF varpar THEN Put2(Ldr, RH, SP, x.a+4+frame)
-    ELSE load(x);
-      pc0 := pc; Put3(BC, EQ, 0);  (*NIL belongs to every pointer type*)
-      Put2(Ldr, RH, x.r, -8)
-    END ;
-    Put2(Ldr, RH, RH, T.nofpar*4); incR;
-    loadTypTagAdr(T);  (*tag of T*)
-    Put0(Cmp, RH-1, RH-1, RH-2); DEC(RH, 2);
-    IF ~varpar THEN fix(pc0, pc - pc0 - 1) END ;
-    IF isguard THEN
-      IF check THEN Trap(NE, 2) END
-    ELSE SetCC(x, EQ);
-      IF ~varpar THEN DEC(RH) END
+  BEGIN
+    IF T = NIL THEN
+      IF x.mode >= Reg THEN DEC(RH) END ;
+      SetCC(x, 7)
+    ELSE (*fetch tag into RH*)
+      IF varpar THEN Put2(Ldr, RH, SP, x.a+4+frame)
+      ELSE load(x);
+        pc0 := pc; Put3(BC, EQ, 0);  (*NIL belongs to every pointer type*)
+        Put2(Ldr, RH, x.r, -8)
+      END ;
+      Put2(Ldr, RH, RH, T.nofpar*4); incR;
+      loadTypTagAdr(T);  (*tag of T*)
+      Put0(Cmp, RH-1, RH-1, RH-2); DEC(RH, 2);
+      IF ~varpar THEN fix(pc0, pc - pc0 - 1) END ;
+      IF isguard THEN
+        IF check THEN Trap(NE, 2) END
+      ELSE SetCC(x, EQ);
+        IF ~varpar THEN DEC(RH) END
+      END
     END
   END TypeTest;
 

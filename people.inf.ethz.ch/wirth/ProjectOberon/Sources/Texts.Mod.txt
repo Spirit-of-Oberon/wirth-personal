@@ -1,4 +1,4 @@
-MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 7.1.2019*)
+MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 10.1.2019*)
   IMPORT Files, Fonts;
 
   CONST (*scanner symbol classes*)
@@ -9,10 +9,10 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 7.
     Real* = 4;          (*real number x*)
     Char* = 6;          (*special character c*)
 
-    (* TextBlock = TextTag "1" offset run {run} "0" len {AsciiCode}.
+    (* TextBlock = TextTag offset run {run} "0" len {AsciiCode}.
       run = fnt [name] col voff len. *)
 
-    TAB = 9X; CR = 0DX; maxD = 9;
+    TAB = 9X; CR = 0DX;
     TextTag = 0F1X;
     replace* = 0; insert* = 1; delete* = 2; unmark* = 3;  (*op-codes*)
 
@@ -33,7 +33,7 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 7.
       notify*: Notifier;
       trailer: Piece;
       pce: Piece;  (*cache*)
-      org: LONGINT; (*cache*)
+      org: LONGINT (*cache*)
     END;
 
     Reader* = RECORD
@@ -334,10 +334,9 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 7.
 
   PROCEDURE Scan* (VAR S: Scanner);
     CONST maxExp = 38; maxM = 16777216; (*2^24*)
-    VAR ch, term: CHAR;
+    VAR ch: CHAR;
       neg, negE, hex: BOOLEAN;
       i, j, h, d, e, n, s: INTEGER;
-      k: LONGINT;
       x: REAL;
   BEGIN ch := S.nextCh; i := 0;
     WHILE (ch = " ") OR (ch = TAB) OR (ch = CR) DO
@@ -482,9 +481,13 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 7.
       IF x < 0.0 THEN Write(W, "-"); x := -x ELSE Write(W, " ") END ;
       e := (e - 127) * 77 DIV 256 - 6;  (*decimal exponent*)
       IF e >= 0 THEN x := x / Ten(e) ELSE x := Ten(-e) * x END ;
-      m := FLOOR(x + 0.5); i := 0;
+      m := FLOOR(x + 0.5);
       IF m >= 10000000 THEN INC(e); m := m DIV 10 END ;
-      REPEAT d[i] := CHR(m MOD 10 + 30H); m := m DIV 10; INC(i) UNTIL m = 0;
+      i := 0; k := 13-n;
+      REPEAT
+         IF i = k THEN INC(m, 5) END ;    (*rounding*)
+       d[i] := CHR(m MOD 10 + 30H); m := m DIV 10; INC(i)
+      UNTIL m = 0;
       DEC(i); Write(W, d[i]); Write(W, ".");
       IF i < n-7 THEN n := 0 ELSE n := 14 - n END ;
       WHILE i > n DO DEC(i); Write(W, d[i]) END ;
