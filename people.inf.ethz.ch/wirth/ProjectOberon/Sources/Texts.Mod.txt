@@ -468,7 +468,7 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 18.11.2014 / 10
   END WriteHex;
 
  PROCEDURE WriteReal* (VAR W: Writer; x: REAL; n: INTEGER);
-    VAR e, i, m: INTEGER;
+    VAR e, i, k, m: INTEGER;
       d: ARRAY 16 OF CHAR;
   BEGIN e := ASR(ORD(x), 23) MOD 100H;  (*binary exponent*)
     IF e = 0 THEN
