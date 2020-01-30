@@ -1,3 +1,5 @@
+26.1.2020 - Improvement suggest by A. Pirklbauer in ORB (ThisModule, Import, Export)
+  ORB.Mod.txt updated
 31.5.2019 - ORP.Mod.txt, ORG.Mod.txt updated in TypeTest
 15.5.2019 - Floating-point rounding corrected
   update Texts.WriteReal  and  ORS.Number
