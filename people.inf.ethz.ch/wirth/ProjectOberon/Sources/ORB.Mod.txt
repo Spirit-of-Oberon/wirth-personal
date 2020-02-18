@@ -1,4 +1,4 @@
-MODULE ORB;   (*NW 25.6.2014  / 26.1.2020   in Oberon-07*)
+MODULE ORB;   (*NW 25.6.2014  / 1.3.2019  in Oberon-07*)
   IMPORT Files, ORS;
   (*Definition of data types Object and Type, which together form the data structure
     called "symbol table". Contains procedures for creation of Objects, and for search:
@@ -133,13 +133,7 @@ MODULE ORB;   (*NW 25.6.2014  / 26.1.2020   in Oberon-07*)
     VAR mod: Module; obj, obj1: Object;
   BEGIN obj1 := topScope; obj := obj1.next;  (*search for module*)
     WHILE (obj # NIL) & (obj.name # name) DO obj1 := obj; obj := obj1.next END ;
-    IF obj = NIL THEN 
-      obj1 := topScope; obj := obj1.next;
-      WHILE (obj # NIL) & (obj IS Module) & (obj(Module).orgname # orgname) DO
-        obj1 := obj; obj := obj1.next
-      END
-    END ;
-    IF obj = NIL THEN (*insert new module*)
+    IF obj = NIL THEN  (*insert new module*)
       NEW(mod); mod.class := Mod; mod.rdo := FALSE;
       mod.name := name; mod.orgname := orgname; mod.val := key;
       mod.lev := nofmod; INC(nofmod); mod.type := noType; mod.dsc := NIL; mod.next := NIL;
@@ -211,7 +205,8 @@ MODULE ORB;   (*NW 25.6.2014  / 26.1.2020   in Oberon-07*)
   
   PROCEDURE Import*(VAR modid, modid1: ORS.Ident);
     VAR key: LONGINT; class, k: INTEGER;
-      obj, thismod: Object;
+      obj: Object;  t: Type;
+      thismod: Object;
       modname, fname: ORS.Ident;
       F: Files.File; R: Files.Rider;
   BEGIN
@@ -228,10 +223,14 @@ MODULE ORB;   (*NW 25.6.2014  / 26.1.2020   in Oberon-07*)
         WHILE class # 0 DO
           NEW(obj); obj.class := class; Files.ReadString(R, obj.name);
           InType(R, thismod, obj.type); obj.lev := -thismod.lev;
-          IF class = Typ THEN obj.type.typobj := obj; Read(R, k)
-          ELSIF class = Const THEN
+          IF class = Typ THEN
+            t := obj.type; t.typobj := obj; Read(R, k);  (*fixup bases of previously declared pointer types*)
+            WHILE k # 0 DO typtab[k].base := t; Read(R, k) END
+          ELSE
+            IF class = Const THEN
               IF obj.type.form = Real THEN Files.ReadInt(R, obj.val) ELSE Files.ReadNum(R, obj.val) END
-          ELSIF class = Var THEN Files.ReadNum(R, obj.val); obj.rdo := TRUE
+            ELSIF class = Var THEN Files.ReadNum(R, obj.val); obj.rdo := TRUE
+            END
           END ;
           obj.next := thismod.dsc; thismod.dsc := obj; Read(R, class)
         END ;
@@ -280,10 +279,7 @@ MODULE ORB;   (*NW 25.6.2014  / 26.1.2020   in Oberon-07*)
       ELSIF t.form = Array THEN OutType(R, t.base); Files.WriteNum(R, t.len); Files.WriteNum(R, t.size)
       ELSIF t.form = Record THEN
         IF t.base # NIL THEN OutType(R, t.base); bot := t.base.dsc ELSE OutType(R, noType); bot := NIL END ;
-        IF obj # NIL THEN
-           IF t.mno > 0 THEN Files.WriteNum(R, t.len) ELSE Files.WriteNum(R, obj.exno) END
-        ELSE Write(R, 0)
-        END ;
+        IF obj # NIL THEN Files.WriteNum(R, obj.exno) ELSE Write(R, 0) END ;
         Files.WriteNum(R, t.nofpar); Files.WriteNum(R, t.size);
         fld := t.dsc;
         WHILE fld # bot DO  (*fields*)
@@ -309,7 +305,7 @@ MODULE ORB;   (*NW 25.6.2014  / 26.1.2020   in Oberon-07*)
 
   PROCEDURE Export*(VAR modid: ORS.Ident; VAR newSF: BOOLEAN; VAR key: LONGINT);
     VAR x, sum, oldkey: LONGINT;
-      obj: Object;
+      obj, obj0: Object;
       filename: ORS.Ident;
       F, F1: Files.File; R, R1: Files.Rider;
   BEGIN Ref := Record + 1; MakeFileName(filename, modid, ".smb");
@@ -322,7 +318,15 @@ MODULE ORB;   (*NW 25.6.2014  / 26.1.2020   in Oberon-07*)
       IF obj.expo THEN
         Write(R, obj.class); Files.WriteString(R, obj.name);
         OutType(R, obj.type);
-        IF obj.class = Typ THEN Write(R, 0)
+        IF obj.class = Typ THEN
+          IF obj.type.form = Record THEN
+            obj0 := topScope.next;  (*check whether this is base of previously declared pointer types*)
+            WHILE obj0 # obj DO
+              IF (obj0.type.form = Pointer) & (obj0.type.base = obj.type) & (obj0.type.ref > 0) THEN Write(R, obj0.type.ref) END ;
+              obj0 := obj0.next
+            END
+          END ;
+          Write(R, 0)
         ELSIF obj.class = Const THEN
           IF obj.type.form = Proc THEN Files.WriteNum(R, obj.exno)
           ELSIF obj.type.form = Real THEN Files.WriteInt(R, obj.val)
