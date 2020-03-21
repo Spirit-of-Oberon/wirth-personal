@@ -1,4 +1,4 @@
-MODULE ORB;   (*NW 25.6.2014  / 1.3.2019  in Oberon-07*)
+MODULE ORB;   (*NW 25.6.2014  / AP 4.3.2020 / 8.3.2019  in Oberon-07*)
   IMPORT Files, ORS;
   (*Definition of data types Object and Type, which together form the data structure
     called "symbol table". Contains procedures for creation of Objects, and for search:
@@ -129,17 +129,25 @@ MODULE ORB;   (*NW 25.6.2014  / 1.3.2019  in Oberon-07*)
     FName[i] := 0X
   END MakeFileName;
   
-  PROCEDURE ThisModule(name, orgname: ORS.Ident; non: BOOLEAN; key: LONGINT): Object;
+  PROCEDURE ThisModule(name, orgname: ORS.Ident; decl: BOOLEAN; key: LONGINT): Object;
     VAR mod: Module; obj, obj1: Object;
   BEGIN obj1 := topScope; obj := obj1.next;  (*search for module*)
-    WHILE (obj # NIL) & (obj.name # name) DO obj1 := obj; obj := obj1.next END ;
-    IF obj = NIL THEN  (*insert new module*)
-      NEW(mod); mod.class := Mod; mod.rdo := FALSE;
-      mod.name := name; mod.orgname := orgname; mod.val := key;
-      mod.lev := nofmod; INC(nofmod); mod.type := noType; mod.dsc := NIL; mod.next := NIL;
-      obj1.next := mod; obj := mod
-    ELSE (*module already present*)
-      IF non THEN ORS.Mark("invalid import order") END
+    WHILE (obj # NIL) & (obj(Module).orgname # orgname) DO obj1 := obj; obj := obj1.next END ;
+    IF obj = NIL THEN  (*new module, search for alias*)
+      obj := topScope.next;
+      WHILE (obj # NIL) & (obj.name # name) DO obj := obj.next END ;
+      IF obj = NIL THEN (*insert new module*)
+        NEW(mod); mod.class := Mod; mod.rdo := FALSE;
+        mod.name := name; mod.orgname := orgname; mod.val := key;
+        mod.lev := nofmod; INC(nofmod); mod.dsc := NIL; mod.next := NIL;
+        IF decl THEN mod.type := noType ELSE mod.type := nilType END ;
+        obj1.next := mod; obj := mod
+      ELSIF decl THEN
+        IF obj.type.form = NoTyp THEN ORS.Mark("mult def") ELSE ORS.Mark("invalid import order") END
+      ELSE ORS.Mark("conflict with alias")
+      END
+    ELSIF decl THEN (*module already present, explicit import by declaration*)
+      IF  obj.type.form = NoTyp THEN ORS.Mark("mult def") ELSE ORS.Mark("invalid import order") END
     END ;
     RETURN obj
   END ThisModule;
@@ -188,7 +196,7 @@ MODULE ORB;   (*NW 25.6.2014  / 1.3.2019  in Oberon-07*)
         t.dsc := obj; t.nofpar := np; t.size := 4
       END ;
       Files.ReadString(R, modname);
-      IF modname[0] #  0X THEN  (*re-import*)
+      IF modname[0] #  0X THEN  (*re-import ========*)
         Files.ReadInt(R, key); Files.ReadString(R, name);
         mod := ThisModule(modname, modname, FALSE, key);
         obj := mod.dsc;  (*search type*)
@@ -211,7 +219,7 @@ MODULE ORB;   (*NW 25.6.2014  / 1.3.2019  in Oberon-07*)
       F: Files.File; R: Files.Rider;
   BEGIN
     IF modid1 = "SYSTEM" THEN
-      thismod := ThisModule(modid, modid1, TRUE, key); DEC(nofmod);
+      thismod := ThisModule(modid, modid1, TRUE,  key); DEC(nofmod);
       thismod.lev := 0; thismod.dsc := system; thismod.rdo := TRUE
     ELSE MakeFileName(fname, modid1, ".smb"); F := Files.Old(fname);
       IF F # NIL THEN
